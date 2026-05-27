@@ -4,10 +4,10 @@ import gsd, gsd.hoomd
 import hoomd 
 import time
 
-from dpd_utils import initialize_snapshot_rand_walk,check_bond_length_equilibration,check_inter_particle_distance
+from dpd_utils import initialize_snapshot_rand_walk,check_bond_length_equilibration,check_inter_particle_distance,add_hoomd_writers,check_pair_energy
 
 
-def create_polymer_system_dpd(num_pol,num_mon,density,k=20000,bond_l=1.0,r_cut=1.15,kT=1.0,A=1000,gamma=800,dt=0.001,particle_spacing=1.1,sim_seed=123,np_seed=1234):
+def create_polymer_system_dpd(num_pol,num_mon,density,k=20000,bond_l=1.0,r_cut=1.15,kT=1.0,A=1000,gamma=800,dt=0.001,particle_spacing=1.1,sim_seed=123,np_seed=1234,write=True,energy=True):
     
     '''
     Initialize a polymer system in a cubic box using a random walk and a HOOMD simulation with DPD forces.
@@ -72,32 +72,40 @@ def create_polymer_system_dpd(num_pol,num_mon,density,k=20000,bond_l=1.0,r_cut=1
     DPD.params[('A', 'A')] = dict(A=A, gamma=gamma)
     integrator.forces.append(DPD)
     
-    logger = hoomd.logging.Logger(categories=['scalar'])
-    logger.add(simulation, quantities=['tps'])
-    print_log = hoomd.write.Table(trigger=hoomd.trigger.Periodic(500),logger=logger)
-    simulation.operations.writers.append(print_log)
-    '''
-    gsd_out = hoomd.write.GSD(
-    trigger=hoomd.trigger.Periodic(10),
-    mode='wb',
-    dynamic=['property','momentum'],
-    filename='run_len_%s_pol_%s.gsd'%(num_mon,num_pol),
-    truncate=False)
-    simulation.operations.writers.append(gsd_out)
-    '''
-    simulation.run(0)
-    #gsd_out.flush()
+    if write:
+        add_hoomd_writers(simulation)
+    simulation.run(0) 
+    for writer in simulation.operations.writers:
+        if hasattr(writer, "flush"):
+            writer.flush()
     simulation.run(500)
-    #gsd_out.flush()
+    for writer in simulation.operations.writers:
+        if hasattr(writer, "flush"):
+            writer.flush()
     snap=simulation.state.get_snapshot()
 
-    while not check_inter_particle_distance(snap,minimum_distance=0.95):
-        check_time = time.perf_counter()
-        if (check_time-start_time) > 7200:
-            return 0
-        simulation.run(100)
-        #gsd_out.flush()
-        snap=simulation.state.get_snapshot()
+    if energy:
+        shrink_cut = 5
+        while not check_pair_energy(shrink_cut): 
+            check_time = time.perf_counter()
+            if (check_time-start_time) > 60:
+                return num_pol*num_mon, 0
+            simulation.run(1000)
+            for writer in simulation.operations.writers:
+                if hasattr(writer, "flush"):
+                    writer.flush()
+            snap=simulation.state.get_snapshot()
+            shrink_cut += 50
+    else:
+        while not check_inter_particle_distance(snap,minimum_distance=0.95):
+            check_time = time.perf_counter()
+            if (check_time-start_time) > 7200:
+                return 0
+            simulation.run(100)
+            for writer in simulation.operations.writers:
+                if hasattr(writer, "flush"):
+                    writer.flush()
+            snap=simulation.state.get_snapshot()
         
     end_time = time.perf_counter()
     total_time = end_time - start_time

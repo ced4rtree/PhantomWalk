@@ -93,7 +93,7 @@ def check_inter_particle_distance(snap,minimum_distance=0.95):
     else:
         return False
 
-def add_hoomd_writers(sim):
+def add_hoomd_writers(sim, gsd_path, log_path):
     """Add GSD trajectory and log writers to a HOOMD simulation.
 
     This function creates:
@@ -106,6 +106,10 @@ def add_hoomd_writers(sim):
     sim : hoomd.Simulation
         HOOMD simulation object to which writers and
         computes will be attached.
+    gsd_path : str
+        Where the .gsd log file should be written to
+    log_path : str
+        Where the .txt log file should be written to
 
     Returns
     -------
@@ -138,7 +142,7 @@ def add_hoomd_writers(sim):
         gsd_logger.add(f, quantities=["energy"])
 
     gsd_writer = hoomd.write.GSD(
-        filename='trajectory.gsd',
+        filename=gsd_path,
         trigger=hoomd.trigger.Periodic(int(10)),
         mode="wb",
         dynamic=["momentum", "property"],
@@ -148,7 +152,7 @@ def add_hoomd_writers(sim):
     gsd_writer.maximum_write_buffer_size = 64 * 1024 * 1024
 
     table_file = hoomd.write.Table(
-        output=open('log.txt', mode="w", newline="\n"),
+        output=open(log_path, mode="w", newline="\n"),
         trigger=hoomd.trigger.Periodic(period=int(10)),
         logger=logger,
         max_header_len=None,
@@ -156,7 +160,7 @@ def add_hoomd_writers(sim):
     sim.operations.writers.append(gsd_writer)
     sim.operations.writers.append(table_file)
 
-def check_pair_energy(step_cut):
+def check_pair_energy(step_cut, log_path):
     """Check whether the pair interaction energy has equilibrated.
 
     Pair energies are read from the HOOMD log file and analyzed
@@ -167,6 +171,8 @@ def check_pair_energy(step_cut):
     step_cut : int
         Number of initial simulation steps to discard before
         performing equilibration analysis.
+    log_path : str
+        What txt log to check pair energy from
 
     Returns
     -------
@@ -175,7 +181,7 @@ def check_pair_energy(step_cut):
         to be equilibrated, otherwise False.
 
     """
-    log = np.genfromtxt("log.txt", names=True)
+    log = np.genfromtxt(log_path, names=True)
     pairs = log["mdpairDPDenergy"]
     shrink_cut = step_cut
     equil, t0, g, neff = is_equilibrated(data=pairs[shrink_cut:], threshold_neff=50) 

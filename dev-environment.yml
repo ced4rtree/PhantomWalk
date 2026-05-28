@@ -1,0 +1,8 @@
+name: phantomwalk-dev
+channels:
+  - conda-forge
+dependencies:
+  - flowermd
+  - time
+  - jupyter
+  - signac

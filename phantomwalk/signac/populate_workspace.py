@@ -7,7 +7,7 @@ import itertools
 project = signac.get_project()
 
 parameters = {
-    "num_pol": [100,500,1000,10000,50000,100000],
+    "num_pol": [100,500,1000,10000],
     "num_mon": [500],
     "density": [0.85],
     "k": [15000,20000,25000],

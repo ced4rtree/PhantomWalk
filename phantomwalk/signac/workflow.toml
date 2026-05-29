@@ -5,10 +5,12 @@ value_file = "signac_statepoint.json"
 command = "python actions.py --action $ACTION_NAME {directories}"
 
 [[action]]
-name = "compute_data"
+name = "run_jobs"
 products = ['summary.txt']
+launchers = ["mpi"]
+group.maximum_size = 2
 
 [action.resources]
-processes.per_submission = 1
+processes.per_directory = 1
 gpus_per_process = 1
 walltime.per_directory = "00:05:00"

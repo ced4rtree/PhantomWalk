@@ -59,108 +59,56 @@ def create_polymer_system_dpd(num_pol,num_mon,density,gsd_path,log_path,k=20000,
     build_time = build_stop-start_time
     print("Total build time: ", build_time)
     harmonic = hoomd.md.bond.Harmonic()
-    print("0")
     harmonic.params["b"] = dict(r0=bond_l, k=k)
-    print("1")
     integrator = hoomd.md.Integrator(dt=dt)
-    print("2")
     integrator.forces.append(harmonic)
-    print("3")
     simulation = hoomd.Simulation(device=hoomd.device.auto_select(), seed=np.random.randint(sim_seed))
-    print("4")
     simulation.operations.integrator = integrator 
-    print("5")
-    try:
-        simulation.create_state_from_snapshot(frame)
-    except:
-        print("womp")
-    print("6")
+    simulation.create_state_from_snapshot(frame)
     const_vol = hoomd.md.methods.ConstantVolume(filter=hoomd.filter.All())
-    print("7")
     integrator.methods.append(const_vol)
-    print("8")
     nlist = hoomd.md.nlist.Cell(buffer=0.4)
-    print("9")
     simulation.operations.nlist = nlist
-    print("10")
     DPD = hoomd.md.pair.DPD(nlist, default_r_cut=r_cut, kT=kT)
-    print("11")
     DPD.params[('A', 'A')] = dict(A=A, gamma=gamma)
-    print("12")
     integrator.forces.append(DPD)
-    print("13")
     
     if write:
-        print("14")
         add_hoomd_writers(simulation, gsd_path=gsd_path, log_path=log_path)
-        print("15")
     simulation.run(0) 
-    print("16")
     for writer in simulation.operations.writers:
-        print("17")
         if hasattr(writer, "flush"):
-            print("18")
             writer.flush()
-            print("19")
     simulation.run(500)
-    print("20")
     for writer in simulation.operations.writers:
-        print("21")
         if hasattr(writer, "flush"):
-            print("22")
             writer.flush()
-            print("23")
     snap=simulation.state.get_snapshot()
-    print("24")
 
     if energy:
         shrink_cut = 5
-        print("25")
         while not check_pair_energy(shrink_cut): 
-            print("26")
             check_time = time.perf_counter()
-            print("27")
             if (check_time-start_time) > 60:
-                print("28")
                 return num_pol*num_mon, 0
-            print("29")
             simulation.run(1000)
-            print("30")
             for writer in simulation.operations.writers:
-                print("31")
                 if hasattr(writer, "flush"):
-                    print("32")
                     writer.flush()
-                    print("33")
             snap=simulation.state.get_snapshot()
-            print("34")
             shrink_cut += 50
-            print("35")
     else:
-        print("36")
         while not check_inter_particle_distance(snap,minimum_distance=0.95):
-            print("37")
             check_time = time.perf_counter()
-            print("38")
             if (check_time-start_time) > 7200:
-                print("39")
                 return 0
-            print("40")
             simulation.run(100)
-            print("41")
             for writer in simulation.operations.writers:
-                print("42")
                 if hasattr(writer, "flush"):
-                    print("43")
                     writer.flush()
-                    print("44")
             snap=simulation.state.get_snapshot()
-            print("45")
         
     end_time = time.perf_counter()
-    print("46")
     total_time = end_time - start_time
-    print("47")
     print("Total build and simulation time:", end_time - start_time)
-    print("48")
     return build_time, total_time, simulation.timestep, 

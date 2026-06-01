@@ -8,7 +8,7 @@ project = signac.get_project()
 
 parameters = {
     "num_pol": [100,500,1000,10000],
-    "num_mon": [500],
+    "num_mon": [2,100,500],
     "density": [0.85],
     "k": [15000,20000,25000],
     "bond_l": [1.0],
@@ -18,7 +18,7 @@ parameters = {
     "gamma": [200,400,1000,2000],
     "dt": [0.01, 0.001, 0.0001],
     "particle_spacing": [1.1],
-    "seed": [35,125,240]
+    "seed": [125,240]
 }
 
 keys, values = zip(*parameters.items())

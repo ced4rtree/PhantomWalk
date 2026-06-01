@@ -7,14 +7,16 @@ command = "python actions.py --action $ACTION_NAME {directories}"
 [[action]]
 name = "run_jobs"
 products = ['summary.txt']
-launchers = ["mpi"]
-group.maximum_size = 1
+launchers = ["openmp"]
+group.maximum_size = 2
 
 [action.resources]
-processes.per_directory = 1
+gpus_per_process = 1
+threads_per_process = 2
 walltime.per_submission = "00:10:00"
 
 [action.submit_options.borah]
 setup = "module load openmpi"
+custom = ["--gres=gpu:1"]
 output_file_name = "out/{action_name}-%j.out"
 partition = "gpu-l40"

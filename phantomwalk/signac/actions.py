@@ -8,7 +8,7 @@ import signac
 import importlib.machinery
 import importlib.util
 
-import mpi4py.MPI
+import multiprocessing
 
 import sys
 sys.path.append('../src')
@@ -64,14 +64,13 @@ def compute_data(job):
             summary_file.flush()
 
 def run_jobs(*jobs):
-    "Run jobs in parallel."
-    num_ranks = mpi4py.MPI.COMM_WORLD.Get_size()
-    num_jobs = len(jobs)
-    if num_ranks != num_jobs:
-        raise RuntimeError(f"Numer of ranks ({num_ranks}) does not match number of job directories. ({num_jobs})")
+    """Process any number of jobs in parallel with the multiprocessing package."""
+    processes = int(os.environ.get('ACTION_THREADS_PER_PROCESS', multiprocessing.cpu_count()))
+    if hasattr(os, 'sched_getaffinity'):
+        processes = len(os.sched_getaffinity(0))
 
-    rank = mpi4py.MPI.COMM_WORLD.Get_rank()
-    compute_data(jobs[rank])
+    with multiprocessing.Pool(processes=processes) as p:
+        p.map(compute_data, jobs)
 
 if __name__ == '__main__':
     # Parse the command line arguments: python action.py [DIRECTORIES]

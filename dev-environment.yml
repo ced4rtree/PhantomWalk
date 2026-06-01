@@ -7,3 +7,4 @@ dependencies:
   - jupyter
   - signac
   - mpi4py
+  - row

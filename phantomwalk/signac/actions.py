@@ -65,8 +65,10 @@ def compute_data(job):
 
 def run_jobs(*jobs):
     "Run jobs in parallel."
-    if mpi4py.MPI.COMM_WORLD.Get_size() != len(jobs):
-        raise RuntimeError("Numer of ranks does not match number of job directories.")
+    num_ranks = mpi4py.MPI.COMM_WORLD.Get_size()
+    num_jobs = len(jobs)
+    if num_ranks != num_jobs:
+        raise RuntimeError(f"Numer of ranks ({num_ranks}) does not match number of job directories. ({num_jobs})")
 
     rank = mpi4py.MPI.COMM_WORLD.Get_rank()
     compute_data(jobs[rank])

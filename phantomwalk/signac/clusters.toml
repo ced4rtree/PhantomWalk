@@ -1,0 +1,6 @@
+[[cluster]]
+name = "borah"
+scheduler = "slurm"
+[[cluster.partition]]
+name = "gpu-v100"
+maximum_gpus_per_job = 2

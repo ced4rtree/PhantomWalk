@@ -14,3 +14,9 @@ group.maximum_size = 2
 processes.per_directory = 1
 gpus_per_process = 1
 walltime.per_directory = "00:05:00"
+
+[action.submit_options.borah]
+setup = "module load openmpi"
+custom = ["--gres=gpu:1"]
+output_file_name = "{action_name}-{directory}%j.out"
+partition = "gpu-v100"

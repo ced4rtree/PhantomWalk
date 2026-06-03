@@ -8,12 +8,12 @@ command = "python actions.py --action $ACTION_NAME {directories}"
 name = "run_jobs"
 products = ['summary.txt']
 launchers = ["openmp"]
-group.maximum_size = 2
+group.maximum_size = 256
 
 [action.resources]
 gpus_per_process = 1
 threads_per_process = 2
-walltime.per_submission = "00:10:00"
+walltime.per_submission = "16:00:00"
 
 [action.submit_options.borah]
 setup = "module load openmpi"

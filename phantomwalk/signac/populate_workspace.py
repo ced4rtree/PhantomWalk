@@ -7,6 +7,7 @@ import itertools
 project = signac.get_project()
 
 parameters = {
+    # BEGIN PARAMETERS
     "num_pol": [100,1000,10000],
     "num_mon": [2,100,500],
     "density": [0.85],
@@ -19,6 +20,7 @@ parameters = {
     "dt": [0.01, 0.001, 0.0001],
     "particle_spacing": [1.1],
     "seed": [125]
+    # END PARAMETERS
 }
 
 keys, values = zip(*parameters.items())

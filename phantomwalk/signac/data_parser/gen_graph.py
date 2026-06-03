@@ -33,13 +33,16 @@ y_axis = log[args.y_axis_key]
 def intify(val):
     return int(val) if val is not None else None
 
+plt.plot(x_axis, y_axis)
+
+axes = plt.gca()
 domain_min = intify(args.domain_min)
 domain_max = intify(args.domain_max)
 range_min = intify(args.range_min)
 range_max = intify(args.range_max)
+axes.set_xlim([domain_min, domain_max])
+axes.set_ylim([range_min, range_max])
 
-plt.plot(x_axis[domain_min:domain_max], y_axis[range_min:range_max])
 plt.xlabel(args.x_axis_name)
 plt.ylabel(args.y_axis_name)
-plt.legend()
 plt.savefig("/bsuhome/cooperpiehl/phantom-graph.png")

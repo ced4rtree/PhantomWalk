@@ -30,10 +30,13 @@ log = np.genfromtxt(args.log_file, names=True)
 x_axis = log[args.x_axis_key]
 y_axis = log[args.y_axis_key]
 
-domain_min = int(args.domain_min)
-domain_max = int(args.domain_max)
-range_min = int(args.range_min)
-range_max = int(args.range_max)
+def intify(val):
+    return int(val) if val is not None else None
+
+domain_min = intify(args.domain_min)
+domain_max = intify(args.domain_max)
+range_min = intify(args.range_min)
+range_max = intify(args.range_max)
 
 plt.plot(x_axis[domain_min:domain_max], y_axis[range_min:range_max])
 plt.xlabel(args.x_axis_name)

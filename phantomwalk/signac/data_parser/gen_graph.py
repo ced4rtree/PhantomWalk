@@ -28,9 +28,9 @@ print(f"ARGS: {args}")
 
 log = np.genfromtxt(args.log_file, names=True)
 print('0')
-x_axis = log[args.x_axis]
+x_axis = log[args.x_axis_key]
 print('1')
-y_axis = log[args.y_axis]
+y_axis = log[args.y_axis_key]
 print('2')
 plt.plot(x_axis[args.domain_min:args.domain_max])
 print('3')

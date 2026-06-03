@@ -24,6 +24,7 @@ for arg in arg_names:
     parser.add_argument(arg)
 
 args = parser.parse_args()
+print(f"ARGS: {args}")
 
 log = np.genfromtxt(args.log_file, names=True)
 print('0')

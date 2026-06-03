@@ -3,6 +3,7 @@
 import argparse
 from dataclasses import dataclass
 import os
+import subprocess
 import sys
 
 BORAH_USERNAME = "cooperpiehl"
@@ -15,7 +16,7 @@ class Parameter:
 parameters = []
 
 # read parameters from populate_workspace.py and use those as arguments to this script
-with open("populate_workspace.py", 'r') as parameters_file:
+with open("../populate_workspace.py", 'r') as parameters_file:
     parameters_file_txt = parameters_file.read()
     start_parameters_dict = parameters_file_txt.find("# BEGIN PARAMETERS")
     end_parameters_dict = parameters_file_txt.find("# END PARAMETERS")
@@ -51,16 +52,32 @@ if len(failed_values) > 0:
     print("\n".join(failed_values))
     sys.exit()
 
+# Handle errors in running commands for us, exiting early with some info about
+# the failed process
 def run_cmd(cmd):
-    status = os.system(cmd)
-    if status != 0:
+    cmd_data = subprocess.run(cmd, capture_output=True)
+    print(f"CMD STDOUT: {cmd_data.stdout.decode('utf-8')}")
+    print(f"CMD STDERR: {cmd_data.stderr.decode('utf-8')}")
+
+    if cmd_data.returncode != 0:
         print(f"""<p>
-            Failed to run <code>{cmd}</code> on the Borah cluster.
-            Process exited with return code {status}.
+Failed to run <code>{' '.join(cmd_data.args)}</code> on the Borah cluster.
+Process exited with return code {cmd_data.returncode}.
+
+Process stdout:
+<pre>
+{cmd_data.stdout.decode('utf-8')}
+</pre>
+
+Process stderr:
+<pre>
+{cmd_data.stderr.decode('utf-8')}
+</pre>
         </p>""")
         sys.exit()
 
-log_file = f"/bsuhome/{BORAH_USERNAME}/scratch/PhantomWalk/phantomwalk/signac/view/".join([
+log_file = "".join([
+    f"/bsuhome/{BORAH_USERNAME}/scratch/PhantomWalk/phantomwalk/signac/view/"
     f"A/{args.A}/"
     f"dt/{args.dt}/"
     f"gamma/{args.gamma}/"
@@ -71,13 +88,20 @@ log_file = f"/bsuhome/{BORAH_USERNAME}/scratch/PhantomWalk/phantomwalk/signac/vi
     f"r_cut/{args.r_cut}/"
     "job/log.txt"
 ])
-gen_graph_cmd = f"python ~/scratch/PhantomWalk/phantomwalk/signac/gen_graph.py {log_file}"
-borah_gen_graph_cmd = f"ssh -C {BORAH_USERNAME}@borah-login.boisestate.edu \"{gen_graph_cmd}\""
+gen_graph_cmd = " ".join([
+    f"python /bsuhome/{BORAH_USERNAME}/scratch/PhantomWalk/phantomwalk/signac/gen_graph.py",
+    "--y-axis-key mdcomputeThermodynamicQuantitiespotential_energy",
+    "--y-axis-name Potential\\ Energy",
+    "--x-axis-key Simulationtimestep",
+    "--x-axis-name Timestep",
+    f"--log-file {log_file}"
+])
+borah_gen_graph_cmd = ["ssh", "-C", f"{BORAH_USERNAME}@borah-login.boisestate.edu", f"{gen_graph_cmd}"]
 run_cmd(borah_gen_graph_cmd)
 
 GRAPH_FILE_NAME = "phantom-graph.png"
 
 # grab the image from borah and bring it onto this computer
-run_cmd(f"scp {BORAH_USERNAME}@borah-login.boisestate.edu:~/{GRAPH_FILE_NAME} .")
+run_cmd(f"scp {BORAH_USERNAME}@borah-login.boisestate.edu:~/{GRAPH_FILE_NAME} .".split())
 
 print(f"<img src=\"{os.getcwd()}/{GRAPH_FILE_NAME}\">")

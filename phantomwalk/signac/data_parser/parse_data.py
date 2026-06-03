@@ -89,7 +89,8 @@ log_file = "".join([
     "job/log.txt"
 ])
 gen_graph_cmd = " ".join([
-    f"python /bsuhome/{BORAH_USERNAME}/scratch/PhantomWalk/phantomwalk/signac/gen_graph.py",
+    "conda activate phantomwalk-dev &&",
+    f"python /bsuhome/{BORAH_USERNAME}/scratch/PhantomWalk/phantomwalk/signac/data_parser/gen_graph.py",
     "--y-axis-key mdcomputeThermodynamicQuantitiespotential_energy",
     "--y-axis-name Potential\\ Energy",
     "--x-axis-key Simulationtimestep",

@@ -10,14 +10,14 @@ parser = argparse.ArgumentParser(
 )
 
 arg_names = [
-    '--range-min'
-    '--range-max'
-    '--domain-min'
-    '--domain-max'
-    '--y-axis-key'
-    '--y-axis-name'
-    '--x-axis-key'
-    '--x-axis-name'
+    '--range-min',
+    '--range-max',
+    '--domain-min',
+    '--domain-max',
+    '--y-axis-key',
+    '--y-axis-name',
+    '--x-axis-key',
+    '--x-axis-name',
     '--log-file'
 ]
 for arg in arg_names:

@@ -100,6 +100,7 @@ print(f"""
     K Value:
     <input type="radio" name="k" value="15000" {is_checked('k', '15000')}> 15000
     <input type="radio" name="k" value="20000" {is_checked('k', '20000')}> 20000
+    <input type="radio" name="k" value="22500" {is_checked('k', '22500')}> 22500
     <input type="radio" name="k" value="25000" {is_checked('k', '25000')}> 25000
     <br>
 
@@ -110,19 +111,24 @@ print(f"""
     R<sub>cut</sub> Value:
     <input type="radio" name="r_cut" value="0.9" {is_checked('r_cut', '0.9')}> 0.9
     <input type="radio" name="r_cut" value="1.0" {is_checked('r_cut', '1.0')}> 1.0
+    <input type="radio" name="r_cut" value="1.2" {is_checked('r_cut', '1.2')}> 1.2
     <input type="radio" name="r_cut" value="2.0" {is_checked('r_cut', '2.0')}> 2.0
     <br>
 
     kT Value:
     <input type="radio" name="kT" value="0.5" {is_checked('kT', '0.5')}> 0.5
     <input type="radio" name="kT" value="1.0" {is_checked('kT', '1.0')}> 1.0
+    <input type="radio" name="kT" value="2.0" {is_checked('kT', '2.0')}> 2.0
     <input type="radio" name="kT" value="3.0" {is_checked('kT', '3.0')}> 3.0
+    <input type="radio" name="kT" value="4.0" {is_checked('kT', '4.0')}> 4.0
     <br>
 
     A Value:
     <input type="radio" name="A" value="500" {is_checked('A', '500')}> 500
     <input type="radio" name="A" value="1000" {is_checked('A', '1000')}> 1000
     <input type="radio" name="A" value="5000" {is_checked('A', '5000')}> 5000
+    <input type="radio" name="A" value="7500" {is_checked('A', '7500')}> 7500
+    <input type="radio" name="A" value="10000" {is_checked('A', '10000')}> 10000
     <br>
 
     &gamma; Value:

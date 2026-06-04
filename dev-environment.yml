@@ -8,3 +8,4 @@ dependencies:
   - signac
   - mpi4py
   - row
+  - signac-dashboard

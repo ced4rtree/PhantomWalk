@@ -18,7 +18,6 @@ exit_after_form = False
 
 def print_outro():
     print("""
-      </form>
     </div>
   </body>
 </html>
@@ -182,18 +181,30 @@ Process stderr:
         """)
         sys.exit()
 
-log_file = "".join([
+    return cmd_data.stdout.decode('utf-8')
+
+def run_borah_cmd(cmd):
+    borah_cmd = [
+        "ssh",
+        "-C",
+        f"{BORAH_USERNAME}@borah-login.boisestate.edu",
+        f"{cmd}"]
+    return run_cmd(borah_cmd)
+
+log_dir = "".join([
     f"/bsuhome/{BORAH_USERNAME}/scratch/PhantomWalk/phantomwalk/signac/view/"
-    f"A/{get_input_val('A')}/"
     f"dt/{get_input_val('dt')}/"
     f"gamma/{get_input_val('gamma')}/"
-    f"k/{get_input_val('k')}/"
-    f"kT/{get_input_val('kT')}/"
     f"num_mon/{get_input_val('num_mon')}/"
     f"num_pol/{get_input_val('num_pol')}/"
+    f"k/{get_input_val('k')}/"
     f"r_cut/{get_input_val('r_cut')}/"
-    "job/log.txt"
+    f"A/{get_input_val('A')}/"
+    f"kT/{get_input_val('kT')}/"
+    "job"
 ])
+
+log_file = f"{log_dir}/log.txt"
 
 domain_min = get_input_val('domain_min')
 domain_max = get_input_val('domain_max')
@@ -207,18 +218,27 @@ gen_graph_cmd = " ".join([
     f"--y-axis-name {get_input_val('y_axis_name')}",
     f"--x-axis-key {get_input_val('x_axis_key')}",
     f"--x-axis-name {get_input_val('x_axis_name')}",
-    (f"--domain-min {domain_min}" if domain_min is not '' else ""),
-    (f"--domain-max {domain_max}" if domain_max is not '' else ""),
-    (f"--range-min {range_min}" if range_min is not '' else ""),
-    (f"--range-max {range_max}" if range_max is not '' else ""),
+    (f"--domain-min {domain_min}" if domain_min != '' else ""),
+    (f"--domain-max {domain_max}" if domain_max != '' else ""),
+    (f"--range-min {range_min}" if range_min != '' else ""),
+    (f"--range-max {range_max}" if range_max != '' else ""),
     f"--log-file {log_file}"
 ])
-borah_gen_graph_cmd = ["ssh", "-C", f"{BORAH_USERNAME}@borah-login.boisestate.edu", f"{gen_graph_cmd}"]
-run_cmd(borah_gen_graph_cmd)
+run_borah_cmd(gen_graph_cmd)
 
 # grab the image from borah and bring it onto this computer
 run_cmd(f"scp {BORAH_USERNAME}@borah-login.boisestate.edu:~/{GRAPH_FILE_NAME} .".split())
 
+# determine whether or not the job failed
+summary_file = f"{log_dir}/summary.txt"
+job_failure = "FAILURE" in run_borah_cmd(f"head -n 1 {summary_file}")
+
+print("<div>")
+if job_failure:
+    print("<p><b>Job FAILED!</b></p>")
+else:
+    print("<p>Job succeeded.</p>")
 print(f"<img src=\"/{GRAPH_FILE_NAME}\">")
+print("</div>")
 
 print_outro()

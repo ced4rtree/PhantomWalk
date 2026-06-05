@@ -10,6 +10,9 @@ import importlib.util
 
 import multiprocessing
 
+import numpy as np
+import matplotlib.pyplot as plt
+
 import sys
 sys.path.append('../src')
 
@@ -19,12 +22,39 @@ GSD_FILE = 'trajectory.gsd'
 LOG_FILE = 'log.txt'
 SUMMARY_FILE = 'summary.txt'
 
+POTENTIAL_ENERGY_GRAPH = 'pe.png'
+
 def stringify_statepoints(job):
     ret = ""
     for key, value in job.cached_statepoint.items():
         ret += f"{key} = {value}, "
     ret = ret[:-2] # remove trailing ', '
     return ret
+
+def potential_energy_graph(job):
+    "Output a graph of potential energy per particle vs. timestep"
+    if job.isfile(POTENTIAL_ENERGY_GRAPH):
+        return
+
+    try:
+        log = np.genfromtxt(job.fn('log.txt'), names=True)
+    except FileNotFoundError:
+        # Exit since the log doesn't exist
+        return
+    x_axis = log["Simulationtimestep"]
+    y_axis = log["mdcomputeThermodynamicQuantitiespotential_energy"]
+
+    plt.plot(x_axis, y_axis)
+
+    axes = plt.gca()
+
+    # Here mainly for convenience later down the line
+    axes.set_xlim([None, None])
+    axes.set_ylim([None, None])
+
+    plt.xlabel("Timestep")
+    plt.ylabel("Potential Energy Per Particle")
+    plt.savefig(job.fn(POTENTIAL_ENERGY_GRAPH))
 
 def compute_data(job):
     """Initializes each system, allows it to equilibrate, and writes out the
@@ -63,17 +93,23 @@ def compute_data(job):
             summary_file.write(str(e))
             summary_file.flush()
 
-def run_jobs(*jobs):
+def run_jobs(action, *jobs):
     """Process any number of jobs in parallel with the multiprocessing package."""
     processes = int(os.environ.get('ACTION_THREADS_PER_PROCESS', multiprocessing.cpu_count()))
     if hasattr(os, 'sched_getaffinity'):
         processes = len(os.sched_getaffinity(0))
 
+    if len(jobs) < processes:
+        processes = len(jobs)
+
+    print(f"Num processes: {processes}")
+    print(f"Jobs: {list(map(lambda job: job._id, jobs))}")
+
     with multiprocessing.Pool(processes=processes) as p:
-        p.map(compute_data, jobs)
+        p.map(action, jobs)
 
 if __name__ == '__main__':
-    # Parse the command line arguments: python action.py [DIRECTORIES]
+    # Parse the command line arguments: python action.py --action ACTION [DIRECTORIES]
     parser = argparse.ArgumentParser()
     parser.add_argument('--action', required=True)
     parser.add_argument('directories', nargs='+')
@@ -84,4 +120,4 @@ if __name__ == '__main__':
     jobs = [project.open_job(id=directory) for directory in args.directories]
 
     # Call the action
-    globals()[args.action](*jobs)
+    run_jobs(globals()[args.action], *jobs)

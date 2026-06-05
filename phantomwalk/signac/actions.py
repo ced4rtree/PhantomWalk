@@ -11,6 +11,7 @@ import importlib.util
 import multiprocessing
 
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 
 import sys
@@ -41,8 +42,13 @@ def potential_energy_graph(job):
     except FileNotFoundError:
         # Exit since the log doesn't exist
         return
+
+    num_pol = job.cached_statepoint['num_pol']
+    num_mon = job.cached_statepoint['num_mon']
+    num_particles = num_pol * num_mon
+
     x_axis = log["Simulationtimestep"]
-    y_axis = log["mdcomputeThermodynamicQuantitiespotential_energy"]
+    y_axis = log["mdcomputeThermodynamicQuantitiespotential_energy"]/num_particles
 
     plt.plot(x_axis, y_axis)
 
@@ -66,12 +72,21 @@ def compute_data(job):
         return
 
     try:
+        num_pol = job.cached_statepoint['num_pol']
+        num_mon = job.cached_statepoint['num_mon']
+
+        # bigger sims take much longer, so writing should happen in proportion
+        # with the system size to prevent writing a crazy large log file.
+        write_freq = int(math.sqrt(num_pol * num_mon))
+
         build_time, total_time, timesteps = create_system_dpd.create_polymer_system_dpd(
-            num_pol = job.cached_statepoint['num_pol'],
-            num_mon = job.cached_statepoint['num_mon'],
+            num_pol = num_pol,
+            num_mon = num_mon,
             density = job.cached_statepoint['density'],
             gsd_file_name = job.fn(GSD_FILE),
+            gsd_write_freq = write_freq,
             log_file_name = job.fn(LOG_FILE),
+            log_write_freq = write_freq,
             k = job.cached_statepoint['k'],
             bond_l = job.cached_statepoint['bond_l'],
             r_cut = job.cached_statepoint['r_cut'],
@@ -81,6 +96,7 @@ def compute_data(job):
             dt = job.cached_statepoint['dt'],
             particle_spacing = job.cached_statepoint['particle_spacing'],
             sim_seed = job.cached_statepoint['seed'],
+            timeout = 60 * 20 # 20 minutes
         )
         with open(job.fn(SUMMARY_FILE), 'w') as summary_file:
             summary_file.write(f'build_time: {build_time}\n')

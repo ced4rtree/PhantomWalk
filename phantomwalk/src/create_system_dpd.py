@@ -6,8 +6,32 @@ import time
 
 from dpd_utils import initialize_snapshot_rand_walk,check_bond_length_equilibration,check_inter_particle_distance,add_hoomd_writers,check_pair_energy
 
+def total_time(start_time):
+    end_time = time.perf_counter()
+    return end_time - start_time
 
-def create_polymer_system_dpd(num_pol,num_mon,density,k=20000,bond_l=1.0,r_cut=1.15,kT=1.0,A=1000,gamma=800,dt=0.001,particle_spacing=1.1,sim_seed=123,np_seed=1234,write=True,energy=True,gsd_file_name='trajectory.gsd',gsd_write_freq=10,log_file_name='log.txt',log_write_freq=10):
+def create_polymer_system_dpd(
+    num_pol,
+    num_mon,
+    density,
+    k=20000,
+    bond_l=1.0,
+    r_cut=1.15,
+    kT=1.0,
+    A=1000,
+    gamma=800,
+    dt=0.001,
+    particle_spacing=1.1,
+    sim_seed=123,
+    np_seed=1234,
+    write=True,
+    energy=True,
+    gsd_file_name='trajectory.gsd',
+    gsd_write_freq=10,
+    log_file_name='log.txt',
+    log_write_freq=10,
+    timeout=60
+):
     
     '''
     Initialize a polymer system in a cubic box using a random walk and a HOOMD simulation with DPD forces.
@@ -103,8 +127,8 @@ def create_polymer_system_dpd(num_pol,num_mon,density,k=20000,bond_l=1.0,r_cut=1
         shrink_cut = 5
         while not check_pair_energy(shrink_cut, log_file_name):
             check_time = time.perf_counter()
-            if (check_time-start_time) > 60:
-                return num_pol*num_mon, 0
+            if timeout is not None and (check_time-start_time) > timeout:
+                return build_time, total_time(), 0
             simulation.run(1000)
             for writer in simulation.operations.writers:
                 if hasattr(writer, "flush"):
@@ -114,8 +138,8 @@ def create_polymer_system_dpd(num_pol,num_mon,density,k=20000,bond_l=1.0,r_cut=1
     else:
         while not check_inter_particle_distance(snap,minimum_distance=0.95):
             check_time = time.perf_counter()
-            if (check_time-start_time) > 7200:
-                return 0
+            if timeout is not None and (check_time-start_time) > timeout:
+                return build_time, total_time(), 0
             simulation.run(100)
             for writer in simulation.operations.writers:
                 if hasattr(writer, "flush"):

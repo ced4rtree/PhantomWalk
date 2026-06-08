@@ -6,10 +6,10 @@ from signac_dashboard.modules import StatepointList, DocumentList, ImageViewer, 
 def read_summary(job):
     filename = 'summary.txt'
     try:
-        with open(job.fn(filename, 'r')) as summary_file:
+        with open(job.fn(filename), 'r') as summary_file:
             return summary_file.read()
-    except:
-        return f'Failed to read {filename}.'
+    except Exception as e:
+        return f'Failed to read {filename}.\n{e}'
 
 modules = [
     StatepointList(),

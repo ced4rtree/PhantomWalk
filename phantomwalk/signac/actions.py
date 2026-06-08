@@ -54,9 +54,9 @@ def potential_energy_graph(job):
 
     axes = plt.gca()
 
-    # Here mainly for convenience later down the line
+    # None values are here mainly for convenience later down the line
     axes.set_xlim([None, None])
-    axes.set_ylim([None, None])
+    axes.set_ylim([None, 50])
 
     plt.xlabel("Timestep")
     plt.ylabel("Potential Energy Per Particle")
@@ -109,6 +109,7 @@ def compute_data(job):
             summary_file.write('FAILURE\n\n')
             summary_file.write(str(e))
             summary_file.flush()
+        raise e
 
 def run_jobs(action, *jobs):
     """Process any number of jobs in parallel with the multiprocessing package."""

@@ -61,6 +61,7 @@ def potential_energy_graph(job):
     plt.xlabel("Timestep")
     plt.ylabel("Potential Energy Per Particle")
     plt.savefig(job.fn(POTENTIAL_ENERGY_GRAPH))
+    plt.clf()
 
 def compute_data(job):
     """Initializes each system, allows it to equilibrate, and writes out the

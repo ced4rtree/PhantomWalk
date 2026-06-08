@@ -170,7 +170,7 @@ def add_hoomd_writers(
     sim.operations.writers.append(gsd_writer)
     sim.operations.writers.append(table_file)
 
-def check_pair_energy(step_cut, log_file_name="log.txt"):
+def check_pair_energy(equilibration_frames, log_file_name="log.txt"):
     """Check whether the pair interaction energy has equilibrated.
 
     Pair energies are read from the HOOMD log file and analyzed
@@ -178,9 +178,9 @@ def check_pair_energy(step_cut, log_file_name="log.txt"):
 
     Parameters
     ----------
-    step_cut : int
-        Number of initial simulation steps to discard before
-        performing equilibration analysis.
+    equilibration_frames : int
+        How many of the most recent frames to check to see if the system is
+        equilibrated
 
     Returns
     -------
@@ -191,8 +191,7 @@ def check_pair_energy(step_cut, log_file_name="log.txt"):
     """
     log = np.genfromtxt(log_file_name, names=True)
     pairs = log["mdpairDPDenergy"]
-    shrink_cut = step_cut
-    equil, t0, g, neff = is_equilibrated(data=pairs[shrink_cut:], threshold_neff=50) 
+    equil, t0, g, neff = is_equilibrated(data=pairs[-equilibration_frames:], threshold_neff=50) 
     if equil:
         return True
     else:

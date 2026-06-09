@@ -181,6 +181,8 @@ def check_pair_energy(equilibration_frames, log_file_name="log.txt"):
     equilibration_frames : int
         How many of the most recent frames to check to see if the system is
         equilibrated
+    log_path : str
+        What txt log to check pair energy from
 
     Returns
     -------

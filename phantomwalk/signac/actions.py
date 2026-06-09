@@ -109,7 +109,6 @@ def compute_data(job):
             summary_file.write('FAILURE\n\n')
             summary_file.write(str(e))
             summary_file.flush()
-        raise e
 
 def run_jobs(action, *jobs):
     """Process any number of jobs in parallel with the multiprocessing package."""

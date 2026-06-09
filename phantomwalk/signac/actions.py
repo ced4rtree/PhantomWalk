@@ -22,6 +22,8 @@ sys.path.append('../src')
 
 import create_system_dpd
 
+import contextlib
+
 GSD_FILE = 'trajectory.gsd'
 LOG_FILE = 'log.txt'
 SUMMARY_FILE = 'summary.txt'
@@ -92,53 +94,62 @@ def potential_energy_graph(job):
     plt.savefig(job.fn(POTENTIAL_ENERGY_GRAPH))
     plt.clf()
 
+def redirect_output(action, job):
+    with contextlib.redirect_stderr(sys.stdout):
+        with contextlib.redirect_stdout(open(job.fn(f'output.txt'), 'w')):
+            action(job)
+
 def compute_data(job):
+    redirect_output(compute_data_internal, job)
+
+def compute_data_internal(job):
     """Initializes each system, allows it to equilibrate, and writes out the
     resulting data."""
 
-    print(f"Processing with {stringify_statepoints(job)}")
-    # skip computation if log files are already present
-    if job.isfile(SUMMARY_FILE):
-        return
+    with open(job.fn("output.txt"), 'w') as sys.stdout:
+        print(f"Processing with {stringify_statepoints(job)}")
+        # skip computation if log files are already present
+        if job.isfile(SUMMARY_FILE):
+            return
 
-    try:
-        num_pol = job.cached_statepoint['num_pol']
-        num_mon = job.cached_statepoint['num_mon']
+        try:
+            num_pol = job.cached_statepoint['num_pol']
+            num_mon = job.cached_statepoint['num_mon']
 
-        # bigger sims take much longer, so writing should happen in proportion
-        # with the system size to prevent writing a crazy large log file.
-        write_freq = int(math.sqrt(num_pol * num_mon))
+            # bigger sims take much longer, so writing should happen in proportion
+            # with the system size to prevent writing a crazy large log file.
+            write_freq = int(math.sqrt(num_pol * num_mon))
 
-        build_time, total_time, timesteps = create_system_dpd.create_polymer_system_dpd(
-            num_pol = num_pol,
-            num_mon = num_mon,
-            density = job.cached_statepoint['density'],
-            gsd_file_name = job.fn(GSD_FILE),
-            gsd_write_freq = write_freq,
-            log_file_name = job.fn(LOG_FILE),
-            log_write_freq = write_freq,
-            k = job.cached_statepoint['k'],
-            bond_l = job.cached_statepoint['bond_l'],
-            r_cut = job.cached_statepoint['r_cut'],
-            kT = job.cached_statepoint['kT'],
-            A = job.cached_statepoint['A'],
-            gamma = job.cached_statepoint['gamma'],
-            dt = job.cached_statepoint['dt'],
-            particle_spacing = job.cached_statepoint['particle_spacing'],
-            sim_seed = job.cached_statepoint['seed'],
-            timeout = 60 * 20 # 20 minutes
-        )
-        with open(job.fn(SUMMARY_FILE), 'w') as summary_file:
-            summary_file.write(f'build_time: {build_time}\n')
-            summary_file.write(f'total_time: {total_time}\n')
-            summary_file.write(f'timesteps: {timesteps}\n')
-            summary_file.flush()
-    except Exception as e: 
-        with open(job.fn(SUMMARY_FILE), 'w') as summary_file:
-            summary_file.write('FAILURE\n\n')
-            summary_file.write(str(e))
-            summary_file.flush()
-        raise e
+            build_time, total_time, timesteps = create_system_dpd.create_polymer_system_dpd(
+                num_pol = num_pol,
+                num_mon = num_mon,
+                density = job.cached_statepoint['density'],
+                gsd_file_name = job.fn(GSD_FILE),
+                gsd_write_freq = write_freq,
+                log_file_name = job.fn(LOG_FILE),
+                log_write_freq = write_freq,
+                k = job.cached_statepoint['k'],
+                bond_l = job.cached_statepoint['bond_l'],
+                r_cut = job.cached_statepoint['r_cut'],
+                kT = job.cached_statepoint['kT'],
+                A = job.cached_statepoint['A'],
+                gamma = job.cached_statepoint['gamma'],
+                dt = job.cached_statepoint['dt'],
+                particle_spacing = job.cached_statepoint['particle_spacing'],
+                sim_seed = job.cached_statepoint['seed'],
+                timeout = 60 * 20 # 20 minutes
+            )
+            with open(job.fn(SUMMARY_FILE), 'w') as summary_file:
+                summary_file.write(f'build_time: {build_time}\n')
+                summary_file.write(f'total_time: {total_time}\n')
+                summary_file.write(f'timesteps: {timesteps}\n')
+                summary_file.flush()
+        except Exception as e: 
+            with open(job.fn(SUMMARY_FILE), 'w') as summary_file:
+                summary_file.write('FAILURE\n\n')
+                summary_file.write(str(e))
+                summary_file.flush()
+            raise e
 
 def run_jobs(action, *jobs):
     """Process any number of jobs in parallel with the multiprocessing package."""

@@ -2,7 +2,7 @@
 value_file = "signac_statepoint.json"
 
 [default.action]
-command = "python actions.py --action $ACTION_NAME {directories} &>$ACTION_NAME-output.txt"
+command = "python actions.py --action $ACTION_NAME {directories}"
 
 [[action]]
 name = "potential_energy_graph"

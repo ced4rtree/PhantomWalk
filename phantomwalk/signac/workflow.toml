@@ -1,0 +1,33 @@
+[workspace]
+value_file = "signac_statepoint.json"
+
+[default.action]
+command = "python actions.py --action $ACTION_NAME {directories} &>$ACTION_NAME-output.txt"
+
+[[action]]
+name = "potential_energy_graph"
+products = ['pe.png']
+launchers = ["openmp"]
+group.maximum_size = 256
+previous_actions = ['compute_data']
+
+[action.resources]
+threads_per_process = 1
+walltime.per_submission = "00:00:10"
+
+[[action]]
+name = "compute_data"
+products = ['summary.txt']
+launchers = ["openmp"]
+group.maximum_size = 256
+
+[action.resources]
+gpus_per_process = 1
+threads_per_process = 2
+walltime.per_submission = "16:00:00"
+
+[action.submit_options.borah]
+setup = "module load openmpi"
+custom = ["--gres=gpu:1"]
+output_file_name = "out/{action_name}-%j.out"
+partition = "gpu-l40"

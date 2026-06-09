@@ -19,7 +19,7 @@ walltime.per_submission = "00:00:10"
 name = "rdf"
 products = ['rdf.png']
 launchers = ["openmp"]
-group.maximum_size = 1
+group.maximum_size = 256
 previous_actions = ['compute_data']
 
 [action.resources]

@@ -137,6 +137,7 @@ def compute_data_internal(job):
                 dt = job.cached_statepoint['dt'],
                 particle_spacing = job.cached_statepoint['particle_spacing'],
                 sim_seed = job.cached_statepoint['seed'],
+                np_seed = job.cached_statepoint['seed'],
                 timeout = 60 * 20 # 20 minutes
             )
             with open(job.fn(SUMMARY_FILE), 'w') as summary_file:

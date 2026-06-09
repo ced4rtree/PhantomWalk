@@ -190,9 +190,10 @@ def check_pair_energy(equilibration_frames, log_file_name="log.txt"):
 
     """
     log = np.genfromtxt(log_file_name, names=True)
-    pairs = log["mdpairDPDenergy"]
-    equil, t0, g, neff = is_equilibrated(data=pairs[-equilibration_frames:], threshold_neff=50) 
-    if equil:
-        return True
-    else:
+    pairs = log["mdpairDPDenergy"][-equilibration_frames:]
+    if np.array_equal(pairs, []):
+        # Giving an empty array to is_equilibrated throws an error.
+        # We know an empty dataset is not equilibrated, so just exit early.
         return False
+    equil, t0, g, neff = is_equilibrated(data=pairs[-equilibration_frames:], threshold_neff=equilibration_frames)
+    return equil

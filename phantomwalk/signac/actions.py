@@ -5,6 +5,9 @@ import os
 
 import signac
 
+import freud
+import gsd.hoomd
+
 import importlib.machinery
 import importlib.util
 
@@ -25,12 +28,38 @@ SUMMARY_FILE = 'summary.txt'
 
 POTENTIAL_ENERGY_GRAPH = 'pe.png'
 
+RDF_FILE = 'rdf.png'
+
 def stringify_statepoints(job):
     ret = ""
     for key, value in job.cached_statepoint.items():
         ret += f"{key} = {value}, "
     ret = ret[:-2] # remove trailing ', '
     return ret
+
+def rdf(job):
+    "Output a graph of the radial distribution function for the last 3 frames"
+    if job.isfile(RDF_FILE):
+        return
+
+    try:
+        traj = gsd.hoomd.open(job.fn(GSD_FILE), 'r')
+    except FileNotFoundError:
+        return
+
+    # Get the smallest box length for calculating our r_max.
+    # Minimum shouldn't matter since this is a cube, but good practice
+    box_l = min(traj[-1].configuration.box[0:3])
+    r_max = min(box_l/2 - 0.01, 3.0)
+    # raise RuntimeError(f"BOX_L: {box_l}")
+
+    rdf = freud.density.RDF(bins=400, r_max=r_max)
+    for frame in traj[-1:]:
+        rdf.compute(frame, reset=False)
+
+    fig, ax = plt.subplots()
+    rdf.plot(ax=ax)
+    plt.savefig(job.fn(RDF_FILE))
 
 def potential_energy_graph(job):
     "Output a graph of potential energy per particle vs. timestep"

@@ -16,8 +16,19 @@ threads_per_process = 1
 walltime.per_submission = "00:00:10"
 
 [[action]]
+name = "rdf"
+products = ['rdf.png']
+launchers = ["openmp"]
+group.maximum_size = 1
+previous_actions = ['compute_data']
+
+[action.resources]
+threads_per_process = 1
+walltime.per_submission = "00:00:20"
+
+[[action]]
 name = "compute_data"
-products = ['summary.txt']
+products = ['summary.txt','log.txt','trajectory.gsd']
 launchers = ["openmp"]
 group.maximum_size = 256
 

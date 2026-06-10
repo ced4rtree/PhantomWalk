@@ -4,7 +4,7 @@ import gsd, gsd.hoomd
 import hoomd 
 import time
 
-from phantomwalk.lib.dpd_utils import initialize_snapshot_rand_walk,check_bond_length_equilibration,check_inter_particle_distance,add_hoomd_writers,check_pair_energy,simulation_energy_end
+from phantomwalk.lib.dpd_utils import initialize_snapshot_rand_walk,check_bond_length_equilibration,check_inter_particle_distance,add_hoomd_writers,simulation_energy_end
 
 
 def create_polymer_system_dpd(
@@ -129,7 +129,7 @@ def create_polymer_system_dpd(
             log_write_freq
         )
 
-    simulation.run(1) 
+    simulation.run(1)
     for writer in simulation.operations.writers:
         if hasattr(writer, "flush"):
             writer.flush()
@@ -141,7 +141,8 @@ def create_polymer_system_dpd(
             r_cut=r_cut,
             num_pol=num_pol,
             num_mon=num_mon,
-            density=density
+            density=density,
+            log_file_name=log_file_name
         ):
             check_time = time.perf_counter()
             if (check_time-start_time) > loop_timeout:

@@ -14,8 +14,8 @@ def rm_files(*files):
             pass
 
 def test_creation():
-    s = dpd.create_polymer_system_dpd(num_pol=5, num_mon=10, density=0.5)
-    assert s > 0
+    snap, time = dpd.create_polymer_system_dpd(num_pol=5, num_mon=10, density=0.5)
+    assert time > 0
 
 def test_custom_log_files():
     # remove files that might've been output by other tests so that file loading

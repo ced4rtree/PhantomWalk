@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import gsd.hoomd
 
-from your_module import initialize_snapshot_rand_walk
+from phantomwalk.src.dpd_utils import initialize_snapshot_rand_walk
 
 @pytest.fixture
 def frame():

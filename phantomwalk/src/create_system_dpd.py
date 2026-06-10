@@ -4,7 +4,7 @@ import gsd, gsd.hoomd
 import hoomd 
 import time
 
-from dpd_utils import initialize_snapshot_rand_walk,check_bond_length_equilibration,check_inter_particle_distance,add_hoomd_writers,check_pair_energy
+from phantomwalk.src.dpd_utils import initialize_snapshot_rand_walk,check_bond_length_equilibration,check_inter_particle_distance,add_hoomd_writers,check_pair_energy
 
 
 def create_polymer_system_dpd(

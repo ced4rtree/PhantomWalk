@@ -13,7 +13,7 @@ previous_actions = ['compute_data']
 
 [action.resources]
 threads_per_process = 1
-walltime.per_submission = "00:00:10"
+walltime.per_submission = "00:01:30"
 
 [[action]]
 name = "rdf"

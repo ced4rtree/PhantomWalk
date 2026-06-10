@@ -17,12 +17,10 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-import sys
-sys.path.append('../src')
-
-import create_system_dpd
+from phantomwalk.lib import create_system_dpd
 
 import contextlib
+import sys
 
 GSD_FILE = 'trajectory.gsd'
 LOG_FILE = 'log.txt'
@@ -120,7 +118,7 @@ def compute_data_internal(job):
             # with the system size to prevent writing a crazy large log file.
             write_freq = int(math.sqrt(num_pol * num_mon))
 
-            build_time, total_time, timesteps = create_system_dpd.create_polymer_system_dpd(
+            snap, time = create_system_dpd.create_polymer_system_dpd(
                 num_pol = num_pol,
                 num_mon = num_mon,
                 density = job.cached_statepoint['density'],
@@ -135,15 +133,12 @@ def compute_data_internal(job):
                 A = job.cached_statepoint['A'],
                 gamma = job.cached_statepoint['gamma'],
                 dt = job.cached_statepoint['dt'],
-                particle_spacing = job.cached_statepoint['particle_spacing'],
                 sim_seed = job.cached_statepoint['seed'],
                 np_seed = job.cached_statepoint['seed'],
-                timeout = 60 * 20 # 20 minutes
+                loop_timeout = 60 * 20 # 20 minutes
             )
             with open(job.fn(SUMMARY_FILE), 'w') as summary_file:
-                summary_file.write(f'build_time: {build_time}\n')
                 summary_file.write(f'total_time: {total_time}\n')
-                summary_file.write(f'timesteps: {timesteps}\n')
                 summary_file.flush()
         except Exception as e: 
             with open(job.fn(SUMMARY_FILE), 'w') as summary_file:

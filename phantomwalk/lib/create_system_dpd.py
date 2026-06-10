@@ -82,9 +82,6 @@ def create_polymer_system_dpd(
         the file that the .txt log file will be saved to
     log_write_freq : int, default 10
         Period to write simulation data to the log file.
-    equilibration_frames : int, default 10
-        How many of the most recent frames to check to see if the system is
-        equilibrated
 
     -------
     Returns

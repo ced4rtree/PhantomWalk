@@ -4,20 +4,20 @@ on:
   push:
     branches: [ main ]
     paths:
-      - flowermd/**
+      - phantomwalk/**
       - environment-dev.yml
       - .github/workflows/pytest.yml
   pull_request:
     branches: [ main ]
     paths:
-      - flowermd/**
+      - phantomwalk/**
       - environment-dev.yml
       - .github/workflows/pytest.yml
   issue_comment:
     types: [created]
     branches: [ main ]
     paths:
-      - flowermd/**
+      - phantomwalk/**
       - environment-dev.yml
       - .github/workflows/pytest.yml
 

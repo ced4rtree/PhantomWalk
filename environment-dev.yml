@@ -5,6 +5,10 @@ dependencies:
   - flowermd
   - time
   - jupyter
+  - signac
+  - mpi4py
+  - row
+  - signac-dashboard
   - pytest
   - pytest-cov
   - pip

@@ -1,3 +1,7 @@
+# Output files from MD runs
+*.gsd
+*.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

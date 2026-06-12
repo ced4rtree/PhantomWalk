@@ -6,7 +6,7 @@ command = "python actions.py --action $ACTION_NAME {directories}"
 
 [[action]]
 name = "potential_energy_graph"
-products = ['pe.png']
+products = ['pe.svg']
 launchers = ["openmp"]
 group.maximum_size = 324
 previous_actions = ['compute_data']
@@ -17,7 +17,7 @@ walltime.per_submission = "00:02:30"
 
 [[action]]
 name = "rdf"
-products = ['rdf.png']
+products = ['rdf.svg']
 launchers = ["openmp"]
 group.maximum_size = 324
 previous_actions = ['compute_data']
@@ -30,7 +30,7 @@ walltime.per_submission = "00:02:30"
 name = "compute_data"
 products = ['summary.txt','log.txt','trajectory.gsd']
 launchers = ["openmp"]
-group.maximum_size = 324
+group.maximum_size = 1
 
 [action.resources]
 gpus_per_process = 1

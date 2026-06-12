@@ -26,9 +26,9 @@ GSD_FILE = 'trajectory.gsd'
 LOG_FILE = 'log.txt'
 SUMMARY_FILE = 'summary.txt'
 
-POTENTIAL_ENERGY_GRAPH = 'pe.png'
+POTENTIAL_ENERGY_GRAPH = 'pe.svg'
 
-RDF_FILE = 'rdf.png'
+RDF_FILE = 'rdf.svg'
 
 def stringify_statepoints(job):
     ret = ""
@@ -36,6 +36,13 @@ def stringify_statepoints(job):
         ret += f"{key} = {value}, "
     ret = ret[:-2] # remove trailing ', '
     return ret
+
+def fail_svg(fn, msg):
+    with open(job.fn(fn), 'w') as fail_file:
+        fail_file.write('<svg height="30" width="200" xmlns="http://www.w3.org/2000/svg">')
+        fail_file.write(f'<text x="5" y="15" fill="red">{msg}</text>')
+        fail_file.write('</svg>')
+        fail_file.flush()
 
 def rdf(job):
     "Output a graph of the radial distribution function for the last 3 frames"
@@ -49,7 +56,11 @@ def rdf(job):
 
     # Get the smallest box length for calculating our r_max.
     # Minimum shouldn't matter since this is a cube, but good practice
-    box_l = min(traj[-1].configuration.box[0:3])
+    try:
+        box_l = min(traj[-1].configuration.box[0:3])
+    except IndexError:
+        fail_svg(RDF_FILE, 'Failed to index trajectory.gsd!')
+        return
     r_max = min(box_l/2 - 0.01, 3.0)
     # raise RuntimeError(f"BOX_L: {box_l}")
 
@@ -76,8 +87,11 @@ def potential_energy_graph(job):
     num_mon = job.cached_statepoint['num_mon']
     num_particles = num_pol * num_mon
 
-    x_axis = log["Simulationtimestep"]
-    y_axis = log["mdcomputeThermodynamicQuantitiespotential_energy"]/num_particles
+    try:
+        x_axis = log["Simulationtimestep"]
+        y_axis = log["mdcomputeThermodynamicQuantitiespotential_energy"]/num_particles
+    except IndexError:
+        fail_svg(POTENTIAL_ENERGY_GRAPH)
 
     plt.plot(x_axis, y_axis)
 

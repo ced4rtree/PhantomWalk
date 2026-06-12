@@ -10,7 +10,7 @@ parameters = {
     # BEGIN PARAMETERS
     "num_pol": [10, 50, 100],
     "num_mon": [2,10,100],
-    "density": [0.85,1.25],
+    "density": [0.85],
     "k": [1000, 10000, 30000],
     "bond_l": [1.0],
     "r_cut": [1.0,1.1,1.2],

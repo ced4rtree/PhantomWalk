@@ -4,39 +4,73 @@ import sys
 import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
-import gsd
+import signac
+import gsd, gsd.hoomd
+import os
 
-args = ' '.join(sys.argv[1:])
+# Value is the key used to index into the parameter dictionary
+variable = "dt"
 
-# Should probably use the signac python api, but it's way easier to do this
-# since `signac find` interprets simplified syntax automatically.
-# Side note: I hate python so much. I am not allowed to format this line to be
-# prettier unless I split it into a million variables
-dirs = subprocess.run(f"signac find {args}".split(), capture_output=True).stdout.decode('utf-8').split()
+constants = {
+    "num_pol": 100,
+    "num_mon": 100,
+    "density": 0.85,
+    "k": 10000,
+    "bond_l": 1.0,
+    "r_cut": 1.0,
+    "kT": 1.0,
+    "A": 5000,
+    "gamma": 1000,
+    "dt": 0.001,
+    "seed": 125,
+}
+if variable in constants:
+    del constants[variable]
+else:
+    raise RuntimeError(f"Specified variable {variable} not in parameter set!")
 
-fig, [timestep_plot, walltime_plot] = plt.subplots(1, 2, sharey=True)
+def fmt_dict(diction, signac=True):
+    ret = ""
+    for key, val in diction.items():
+        if signac:
+            ret += f"{key} {val}"
+        else:
+            ret += f"{key}: {val}, "
+    if not signac:
+        ret = ret[:-2]
+    return ret
 
-for dire in dirs:
-    log = np.genfromtxt(f"workspace/{dire}/log.txt", names=True)
+project = signac.Project()
+jobs = project.find_jobs(constants)
+
+fig, [timestep_plot, walltime_plot] = plt.subplots(1, 2)
+
+for job in jobs:
+    log = np.genfromtxt(job.fn("log.txt"), names=True)
     timesteps = log["Simulationtimestep"]
-    potential_energy = log["mdcomputeThermodynamicQuantitiespotential_energy"]
 
-    traj = gsd.open(f"workspace/{dire}/trajectory.gsd", 'r')
+    traj = gsd.hoomd.open(job.fn("trajectory.gsd"), 'r')
     num_particles = traj[0].particles.N
 
-    scaled_energy = potential_energy/num_particles
+    variable_value = job.statepoint[variable]
+    point_label = f"{variable}: {variable_value}"
 
-    timestep_plot.plot(timesteps, scaled_energy, label=dire)
+    timestep_plot.plot(variable_value, timesteps[-1], 'o', label=point_label)
 
-    with open(f"workspace/{dire}/summary.txt") as summary_file:
+    with open(job.fn("summary.txt"), 'r') as summary_file:
         summary = summary_file.read()
         if "total_time: " in summary:
-            walltime = summary.split(" ")[1]
+            walltime = float(summary.split(" ")[1])
         else:
-            break
+            continue
 
-    walltime_plot.plot(walltime, scaled_energy, label=dire)
-walltime_plot.ylabel("Potential Energy Per Particle")
-timestep_plot.ylabel("Potential Energy Per Particle")
-walltime_plot.xlabel("Walltime (s)")
-timestep_plot.xlabel("Timesteps")
+    walltime_plot.plot(variable_value, walltime, 'o', label=point_label)
+timestep_plot.set(ylabel="Timesteps", xlabel=f"{variable}")
+walltime_plot.set(ylabel="Walltime (s)", xlabel=f"{variable}")
+
+plt.legend(loc='upper right')
+
+output_dir = "./time-plots"
+if not os.path.isdir(output_dir):
+    os.makedirs(output_dir)
+plt.savefig(f"{output_dir}/{variable}.png")

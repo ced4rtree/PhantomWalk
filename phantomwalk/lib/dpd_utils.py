@@ -219,7 +219,7 @@ def simulation_energy_end(A,r,r_cut,num_pol,num_mon,density,energy_idx=-1,log_fi
     energy for each pair in the system
     '''
     U_goal = calculate_pair_energy(A=A,r=r,r_cut=r_cut,num_pol=num_pol,num_mon=num_mon,density=density)
-    last_U = check_pair_energy(energy_idx=energy_idx, log_file_name=log_file_name)
+    last_U = check_pair_energy(energy_idx=energy_idx,log_file_name=log_file_name)
     if last_U <= U_goal:
         return True
     else:

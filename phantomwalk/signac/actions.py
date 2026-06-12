@@ -77,7 +77,7 @@ def potential_energy_graph(job):
         log = np.genfromtxt(job.fn('log.txt'), names=True)
     except (FileNotFoundError, IndexError) as e:
         # Exit since the log doesn't exist
-        fail_svg(job.fn(POTENTIAL_ENERGY_GRAPH, f'Failed to read log.txt!\n{e}'))
+        fail_svg(job.fn(POTENTIAL_ENERGY_GRAPH), f'Failed to read log.txt!\n{e}')
         return
 
     num_pol = job.cached_statepoint['num_pol']

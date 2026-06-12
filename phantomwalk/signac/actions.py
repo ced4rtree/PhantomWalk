@@ -149,7 +149,7 @@ def compute_data_internal(job):
                 loop_timeout = 60 * 20 # 20 minutes
             )
             with open(job.fn(SUMMARY_FILE), 'w') as summary_file:
-                summary_file.write(f'total_time: {total_time}\n')
+                summary_file.write(f'total_time: {time}\n')
                 summary_file.flush()
         except Exception as e: 
             with open(job.fn(SUMMARY_FILE), 'w') as summary_file:

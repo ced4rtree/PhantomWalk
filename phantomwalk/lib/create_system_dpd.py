@@ -6,10 +6,6 @@ import time
 
 from phantomwalk.lib.dpd_utils import initialize_snapshot_rand_walk,check_bond_length_equilibration,check_inter_particle_distance,add_hoomd_writers,simulation_energy_end
 
-def total_time(start_time):
-    end_time = time.perf_counter()
-    return end_time - start_time
-
 def create_polymer_system_dpd(
     num_pol,
     num_mon,

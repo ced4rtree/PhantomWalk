@@ -38,7 +38,7 @@ def stringify_statepoints(job):
     return ret
 
 def fail_svg(fn, msg):
-    with open(job.fn(fn), 'w') as fail_file:
+    with open(fn, 'w') as fail_file:
         fail_file.write('<svg height="30" width="200" xmlns="http://www.w3.org/2000/svg">')
         fail_file.write(f'<text x="5" y="15" fill="red">{msg}</text>')
         fail_file.write('</svg>')
@@ -51,15 +51,11 @@ def rdf(job):
 
     try:
         traj = gsd.hoomd.open(job.fn(GSD_FILE), 'r')
-    except FileNotFoundError:
-        return
-
-    # Get the smallest box length for calculating our r_max.
-    # Minimum shouldn't matter since this is a cube, but good practice
-    try:
+        # Get the smallest box length for calculating our r_max.
+        # Minimum shouldn't matter since this is a cube, but good practice
         box_l = min(traj[-1].configuration.box[0:3])
-    except IndexError:
-        fail_svg(RDF_FILE, 'Failed to index trajectory.gsd!')
+    except (FileNotFoundError, IndexError) as e:
+        fail_svg(job.fn(RDF_FILE), f'Failed to read trajectory.gsd!\n{e}')
         return
     r_max = min(box_l/2 - 0.01, 3.0)
     # raise RuntimeError(f"BOX_L: {box_l}")
@@ -79,8 +75,9 @@ def potential_energy_graph(job):
 
     try:
         log = np.genfromtxt(job.fn('log.txt'), names=True)
-    except FileNotFoundError:
+    except (FileNotFoundError, IndexError) as e:
         # Exit since the log doesn't exist
+        fail_svg(job.fn(POTENTIAL_ENERGY_GRAPH, f'Failed to read log.txt!\n{e}'))
         return
 
     num_pol = job.cached_statepoint['num_pol']
@@ -91,7 +88,7 @@ def potential_energy_graph(job):
         x_axis = log["Simulationtimestep"]
         y_axis = log["mdcomputeThermodynamicQuantitiespotential_energy"]/num_particles
     except IndexError:
-        fail_svg(POTENTIAL_ENERGY_GRAPH)
+        fail_svg(job.fn(POTENTIAL_ENERGY_GRAPH))
 
     plt.plot(x_axis, y_axis)
 

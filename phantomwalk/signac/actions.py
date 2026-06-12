@@ -96,7 +96,7 @@ def potential_energy_graph(job):
 
     # None values are here mainly for convenience later down the line
     axes.set_xlim([None, None])
-    axes.set_ylim([None, 50])
+    axes.set_ylim([0, 200])
 
     plt.xlabel("Timestep")
     plt.ylabel("Potential Energy Per Particle")
@@ -127,7 +127,7 @@ def compute_data_internal(job):
 
             # bigger sims take much longer, so writing should happen in proportion
             # with the system size to prevent writing a crazy large log file.
-            write_freq = int(math.sqrt(num_pol * num_mon) / 4)
+            write_freq = int(50)
 
             snap, time = create_system_dpd.create_polymer_system_dpd(
                 num_pol = num_pol,

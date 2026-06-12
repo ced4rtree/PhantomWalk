@@ -127,7 +127,7 @@ def compute_data_internal(job):
 
             # bigger sims take much longer, so writing should happen in proportion
             # with the system size to prevent writing a crazy large log file.
-            write_freq = int(math.sqrt(num_pol * num_mon))
+            write_freq = int(math.sqrt(num_pol * num_mon) / 4)
 
             snap, time = create_system_dpd.create_polymer_system_dpd(
                 num_pol = num_pol,

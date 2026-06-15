@@ -9,13 +9,13 @@ import gsd, gsd.hoomd
 import os
 
 # Value is the key used to index into the parameter dictionary
-variable = "dt"
+variables = ["A", "k"]
 
 constants = {
     "num_pol": 100,
     "num_mon": 100,
     "density": 0.85,
-    "k": 10000,
+    "k": 1000,
     "bond_l": 1.0,
     "r_cut": 1.0,
     "kT": 1.0,
@@ -24,10 +24,12 @@ constants = {
     "dt": 0.001,
     "seed": 125,
 }
-if variable in constants:
-    del constants[variable]
-else:
-    raise RuntimeError(f"Specified variable {variable} not in parameter set!")
+
+for variable in variables:
+    if variable in constants:
+        del constants[variable]
+    else:
+        raise RuntimeError(f"Specified variable {variable} not in parameter set!")
 
 def fmt_dict(diction, signac=True):
     ret = ""
@@ -43,34 +45,70 @@ def fmt_dict(diction, signac=True):
 project = signac.Project()
 jobs = project.find_jobs(constants)
 
-fig, [timestep_plot, walltime_plot] = plt.subplots(1, 2)
+fig = plt.figure()
+timestep_plot = fig.add_subplot(121, projection='3d')
+walltime_plot = fig.add_subplot(122, projection='3d')
+
+xs = []
+ys = []
+timesteps = []
+walltimes = []
 
 for job in jobs:
     log = np.genfromtxt(job.fn("log.txt"), names=True)
-    timesteps = log["Simulationtimestep"]
+    timestep = log["Simulationtimestep"]
+    timesteps = np.append(timesteps, timestep)
 
-    traj = gsd.hoomd.open(job.fn("trajectory.gsd"), 'r')
-    num_particles = traj[0].particles.N
-
-    variable_value = job.statepoint[variable]
-    point_label = f"{variable}: {variable_value}"
-
-    timestep_plot.plot(variable_value, timesteps[-1], 'o', label=point_label)
+    for variable in variables:
+        variable_value = job.statepoint[variable]
+        if variable in variables[0]:
+            xs.append(variable_value)
+        else:
+            ys.append(variable_value)
 
     with open(job.fn("summary.txt"), 'r') as summary_file:
         summary = summary_file.read()
         if "total_time: " in summary:
             walltime = float(summary.split(" ")[1])
         else:
-            continue
+            walltime = 0
+    walltimes = np.append(walltimes, walltime)
 
-    walltime_plot.plot(variable_value, walltime, 'o', label=point_label)
-timestep_plot.set(ylabel="Timesteps", xlabel=f"{variable}")
-walltime_plot.set(ylabel="Walltime (s)", xlabel=f"{variable}")
+xs_sorted = np.sort(np.unique(xs))
+ys_sorted = np.sort(np.unique(ys))
+timesteps_sorted = np.sort(np.unique(timesteps))
+walltimes_sorted = np.sort(np.unique(timesteps))
 
-plt.legend(loc='upper right')
+grid_shape = (len(xs_sorted), len(ys_sorted))
+x_grid = np.zeros(grid_shape)
+y_grid = np.zeros(grid_shape)
+timestep_grid = np.zeros(grid_shape)
+walltime_grid = np.zeros(grid_shape)
+
+for zs, z_grid in [(timesteps, timestep_grid), (walltimes, walltime_grid)]:
+    for (x, y, z) in zip(xs, ys, zs):
+        x_idx = np.where(xs_sorted == x)
+        y_idx = np.where(ys_sorted == y)
+        for val, grid in [(x, x_grid), (y, y_grid), (z, z_grid)]:
+            grid[y_idx, x_idx] = val
+
+print(f"x_grid: {x_grid}")
+print(f"y_grid: {y_grid}")
+print(f"timestep_grid: {timestep_grid}")
+print(f"walltime_grid: {walltime_grid}")
+
+timestep_plot.plot_wireframe(x_grid, y_grid, timestep_grid)
+walltime_plot.plot_wireframe(x_grid, y_grid, walltime_grid)
+
+timestep_plot.set(zlabel="Timesteps", xlabel=f"{variables[0]}", ylabel=f"{variables[1]}")
+walltime_plot.set(zlabel="Walltime (s)", xlabel=f"{variables[0]}", ylabel=f"{variables[1]}")
+
+walltime_plot.set_zlim(zmax=1.5)
+
+# plt.legend()
 
 output_dir = "./time-plots"
 if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
-plt.savefig(f"{output_dir}/{variable}.png")
+# plt.savefig(f"{output_dir}/{variables[0]}-{variables[1]}.png")
+plt.show()

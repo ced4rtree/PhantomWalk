@@ -28,7 +28,21 @@ walltime.per_submission = "00:02:30"
 
 [[action]]
 name = "compute_data"
-products = ['summary.txt','log.txt','trajectory.gsd']
+products = [
+  'summary.txt',
+
+  'log-0.txt',
+  'log-1.txt',
+  'log-2.txt',
+  'log-3.txt',
+  'log-4.txt',
+
+  'trajectory-0.gsd',
+  'trajectory-1.gsd',
+  'trajectory-2.gsd',
+  'trajectory-3.gsd',
+  'trajectory-4.gsd',
+]
 launchers = ["openmp"]
 group.maximum_size = 243
 

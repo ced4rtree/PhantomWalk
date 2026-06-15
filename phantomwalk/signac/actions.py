@@ -22,8 +22,6 @@ from phantomwalk.lib import create_system_dpd
 import contextlib
 import sys
 
-GSD_FILE = 'trajectory.gsd'
-LOG_FILE = 'log.txt'
 SUMMARY_FILE = 'summary.txt'
 
 POTENTIAL_ENERGY_GRAPH = 'pe.svg'
@@ -49,13 +47,15 @@ def rdf(job):
     if job.isfile(RDF_FILE):
         return
 
+    traj_name = f'trajectory-1.gsd'
+
     try:
-        traj = gsd.hoomd.open(job.fn(GSD_FILE), 'r')
+        traj = gsd.hoomd.open(job.fn(traj_name), 'r')
         # Get the smallest box length for calculating our r_max.
         # Minimum shouldn't matter since this is a cube, but good practice
         box_l = min(traj[-1].configuration.box[0:3])
     except (FileNotFoundError, IndexError) as e:
-        fail_svg(job.fn(RDF_FILE), f'Failed to read trajectory.gsd!\n{e}')
+        fail_svg(job.fn(RDF_FILE), f'Failed to read {traj_name}!\n{e}')
         return
     r_max = min(box_l/2 - 0.01, 3.0)
     # raise RuntimeError(f"BOX_L: {box_l}")
@@ -73,11 +73,13 @@ def potential_energy_graph(job):
     if job.isfile(POTENTIAL_ENERGY_GRAPH):
         return
 
+    log_name = 'log-1.txt'
+
     try:
-        log = np.genfromtxt(job.fn('log.txt'), names=True)
+        log = np.genfromtxt(job.fn(log_name), names=True)
     except (FileNotFoundError, IndexError) as e:
         # Exit since the log doesn't exist
-        fail_svg(job.fn(POTENTIAL_ENERGY_GRAPH), f'Failed to read log.txt!\n{e}')
+        fail_svg(job.fn(POTENTIAL_ENERGY_GRAPH), f'Failed to read {log_name}!\n{e}')
         return
 
     num_pol = job.cached_statepoint['num_pol']
@@ -103,39 +105,29 @@ def potential_energy_graph(job):
     plt.savefig(job.fn(POTENTIAL_ENERGY_GRAPH))
     plt.clf()
 
-def redirect_output(action, job):
-    with contextlib.redirect_stderr(sys.stdout):
-        with contextlib.redirect_stdout(open(job.fn(f'output.txt'), 'w')):
-            action(job)
+NUM_RUNS = 5
 
 def compute_data(job):
-    redirect_output(compute_data_internal, job)
+    with contextlib.redirect_stderr(sys.stdout):
+        with contextlib.redirect_stdout(open(job.fn(f'output.txt'), 'w')):
+            for i in range(NUM_RUNS):
+                compute_data_internal(job, i)
 
-def compute_data_internal(job):
-    """Initializes each system, allows it to equilibrate, and writes out the
-    resulting data."""
-
+def compute_data_internal(job, run_number):
     with open(job.fn("output.txt"), 'w') as sys.stdout:
-        print(f"Processing with {stringify_statepoints(job)}")
-        # skip computation if log files are already present
-        if job.isfile(SUMMARY_FILE):
-            return
-
         try:
             num_pol = job.cached_statepoint['num_pol']
             num_mon = job.cached_statepoint['num_mon']
 
-            # bigger sims take much longer, so writing should happen in proportion
-            # with the system size to prevent writing a crazy large log file.
             write_freq = int(50)
 
             snap, time = create_system_dpd.create_polymer_system_dpd(
                 num_pol = num_pol,
                 num_mon = num_mon,
                 density = job.cached_statepoint['density'],
-                gsd_file_name = job.fn(GSD_FILE),
+                gsd_file_name = job.fn(f'trajectory-{run_number}.gsd'),
                 gsd_write_freq = write_freq,
-                log_file_name = job.fn(LOG_FILE),
+                log_file_name = job.fn(f'log-{run_number}.txt'),
                 log_write_freq = write_freq,
                 k = job.cached_statepoint['k'],
                 bond_l = job.cached_statepoint['bond_l'],
@@ -148,15 +140,16 @@ def compute_data_internal(job):
                 np_seed = job.cached_statepoint['seed'],
                 loop_timeout = 60 * 20 # 20 minutes
             )
-            with open(job.fn(SUMMARY_FILE), 'w') as summary_file:
+            with open(job.fn(SUMMARY_FILE), 'a') as summary_file:
                 summary_file.write(f'total_time: {time}\n')
+                summary_file.write(f'run {run_number}\n')
                 summary_file.flush()
         except Exception as e: 
-            with open(job.fn(SUMMARY_FILE), 'w') as summary_file:
-                summary_file.write('FAILURE\n\n')
+            with open(job.fn(SUMMARY_FILE), 'a') as summary_file:
+                summary_file.write(f'FAILURE of run {run_number}\n\n')
                 summary_file.write(str(e))
                 summary_file.flush()
-
+        
 def run_jobs(action, *jobs):
     """Process any number of jobs in parallel with the multiprocessing package."""
     processes = int(os.environ.get('ACTION_THREADS_PER_PROCESS', multiprocessing.cpu_count()))

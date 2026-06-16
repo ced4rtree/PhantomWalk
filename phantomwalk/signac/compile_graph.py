@@ -4,9 +4,11 @@ import sys
 import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 import signac
 import gsd, gsd.hoomd
 import os
+import math
 
 # Value is the key used to index into the parameter dictionary
 variables = ["A", "k"]
@@ -52,12 +54,23 @@ walltime_plot = fig.add_subplot(122, projection='3d')
 xs = []
 ys = []
 timesteps = []
+timestep_errs = []
 walltimes = []
+walltime_errs = []
+
+NUM_RUNS = 5
 
 for job in jobs:
-    log = np.genfromtxt(job.fn("log.txt"), names=True)
-    timestep = log["Simulationtimestep"]
-    timesteps = np.append(timesteps, timestep)
+    # get the average timestep
+    job_timesteps = []
+    for i in range(NUM_RUNS):
+        log = np.genfromtxt(job.fn(f"log-{i}.txt"), names=True)
+        job_timesteps.append(log["Simulationtimestep"][-1])
+    timestep_mean = sum(job_timesteps)/len(job_timesteps)
+    timestep_stddev = np.std(job_timesteps)
+    timestep_sem = timestep_stddev / math.sqrt(len(job_timesteps))
+    timesteps = np.append(timesteps, timestep_mean)
+    timestep_errs = np.append(timestep_errs, timestep_sem)
 
     for variable in variables:
         variable_value = job.statepoint[variable]
@@ -68,16 +81,18 @@ for job in jobs:
 
     with open(job.fn("summary.txt"), 'r') as summary_file:
         summary = summary_file.read()
-        if "total_time: " in summary:
-            walltime = float(summary.split(" ")[1])
-        else:
-            walltime = 0
-    walltimes = np.append(walltimes, walltime)
+        job_walltimes = [ txt.split(" ")[1] for txt in summary.split('\n') if 'total_time' in txt ]
+    job_walltimes = [ float(t) for t in job_walltimes ]
+    walltime_mean = sum(job_walltimes)/len(job_walltimes)
+    walltime_stddev = np.std(job_walltimes)
+    walltime_sem = walltime_stddev / math.sqrt(len(job_walltimes))
+    walltimes = np.append(walltimes, walltime_mean)
+    walltime_errs = np.append(walltime_errs, walltime_sem)
 
 xs_sorted = np.sort(np.unique(xs))
 ys_sorted = np.sort(np.unique(ys))
 timesteps_sorted = np.sort(np.unique(timesteps))
-walltimes_sorted = np.sort(np.unique(timesteps))
+walltimes_sorted = np.sort(np.unique(walltimes))
 
 grid_shape = (len(xs_sorted), len(ys_sorted))
 x_grid = np.zeros(grid_shape)
@@ -92,23 +107,20 @@ for zs, z_grid in [(timesteps, timestep_grid), (walltimes, walltime_grid)]:
         for val, grid in [(x, x_grid), (y, y_grid), (z, z_grid)]:
             grid[y_idx, x_idx] = val
 
-print(f"x_grid: {x_grid}")
-print(f"y_grid: {y_grid}")
-print(f"timestep_grid: {timestep_grid}")
-print(f"walltime_grid: {walltime_grid}")
-
 timestep_plot.plot_wireframe(x_grid, y_grid, timestep_grid)
 walltime_plot.plot_wireframe(x_grid, y_grid, walltime_grid)
 
 timestep_plot.set(zlabel="Timesteps", xlabel=f"{variables[0]}", ylabel=f"{variables[1]}")
 walltime_plot.set(zlabel="Walltime (s)", xlabel=f"{variables[0]}", ylabel=f"{variables[1]}")
 
-walltime_plot.set_zlim(zmax=1.5)
+timestep_plot.errorbar(xs, ys, timesteps, zerr=timestep_errs, fmt='none', ecolor='r')
+walltime_plot.errorbar(xs, ys, walltimes, zerr=walltime_errs, fmt='none', ecolor='r')
+
+# walltime_plot.set_zlim(zmax=1.5)
 
 # plt.legend()
 
 output_dir = "./time-plots"
 if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
-# plt.savefig(f"{output_dir}/{variables[0]}-{variables[1]}.png")
-plt.show()
+plt.savefig(f"{output_dir}/{variables[0]}-{variables[1]}.png")

@@ -121,7 +121,7 @@ def compute_data_internal(job, run_number):
 
             write_freq = int(50)
 
-            snap, time = create_system_dpd.create_polymer_system_dpd(
+            snap, closest, time, energy_per_part = create_system_dpd.create_polymer_system_dpd(
                 num_pol = num_pol,
                 num_mon = num_mon,
                 density = job.cached_statepoint['density'],
@@ -141,8 +141,9 @@ def compute_data_internal(job, run_number):
                 loop_timeout = 60 * 20 # 20 minutes
             )
             with open(job.fn(SUMMARY_FILE), 'a') as summary_file:
-                summary_file.write(f'total_time: {time}\n')
-                summary_file.write(f'run {run_number}\n')
+                summary_file.write(f'run {run_number},')
+                summary_file.write(f'total_time: {time},')
+                summary_file.write(f'closest particle radius: {closest}\n')
                 summary_file.flush()
         except Exception as e: 
             with open(job.fn(SUMMARY_FILE), 'a') as summary_file:

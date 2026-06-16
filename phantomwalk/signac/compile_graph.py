@@ -81,7 +81,7 @@ for job in jobs:
 
     with open(job.fn("summary.txt"), 'r') as summary_file:
         summary = summary_file.read()
-        job_walltimes = [ txt.split(" ")[1] for txt in summary.split('\n') if 'total_time' in txt ]
+        job_walltimes = [ txt.split(",")[1].split(' ')[1] for txt in summary.split('\n') if 'total_time' in txt ]
     job_walltimes = [ float(t) for t in job_walltimes ]
     walltime_mean = sum(job_walltimes)/len(job_walltimes)
     walltime_stddev = np.std(job_walltimes)

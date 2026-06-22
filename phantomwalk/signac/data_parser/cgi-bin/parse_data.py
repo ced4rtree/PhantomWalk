@@ -29,10 +29,44 @@ def print_intro():
 <!DOCTYPE html>
 <html lang="en">
   <style>
+    * {
+      background: #0133A0;
+      color: #FFFFFF;
+      font-size: small;
+    }
+
+    html, body {
+      /* Force page to take up the whole screen */
+      height: 100%;
+    }
+
     #main-container {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
+    }
+
+    /* apply recursively to all elements under main-container */
+    #main-container * {
+      background: #D64308;
+      border-radius: 3px;
+    }
+
+    /* only applies one level deep within main-container */
+    #main-container > * {
+      padding: 5px;
+    }
+
+    #graph {
+      width: 60%;
+    }
+
+    img {
+      width: 100%;
+    }
+
+    input {
+      border-width: 1px;
     }
   </style>
   <body>
@@ -57,7 +91,7 @@ def get_input_val(key):
 
 print_intro()
 print(f"""
-<h1>Borah Data Parser</h1>
+<h1>PhantomWalk Data Parser</h1>
 <div id="main-container">
   <form>
     X Axis Key: <input type="text" name="x_axis_key" value="{get_input_val('x_axis_key')}">
@@ -83,13 +117,11 @@ print(f"""
     Number of Polymers:
     <input type="radio" name="num_pol" value="100" {is_checked('num_pol', '100')}> 100
     <input type="radio" name="num_pol" value="1000" {is_checked('num_pol', '1000')}> 1000
-    <input type="radio" name="num_pol" value="10000" {is_checked('num_pol', '10000')}> 10000
     <br>
 
     Number of Monomers:
-    <input type="radio" name="num_mon" value="2" {is_checked('num_mon', '2')}> 2
+    <input type="radio" name="num_mon" value="50" {is_checked('num_mon', '50')}> 50
     <input type="radio" name="num_mon" value="100" {is_checked('num_mon', '100')}> 100
-    <input type="radio" name="num_mon" value="500" {is_checked('num_mon', '500')}> 500
     <br>
 
     Number Density:
@@ -97,10 +129,9 @@ print(f"""
     <br>
 
     K Value:
-    <input type="radio" name="k" value="15000" {is_checked('k', '15000')}> 15000
     <input type="radio" name="k" value="20000" {is_checked('k', '20000')}> 20000
-    <input type="radio" name="k" value="22500" {is_checked('k', '22500')}> 22500
-    <input type="radio" name="k" value="25000" {is_checked('k', '25000')}> 25000
+    <input type="radio" name="k" value="30000" {is_checked('k', '30000')}> 30000
+    <input type="radio" name="k" value="40000" {is_checked('k', '40000')}> 40000
     <br>
 
     Bond Length:
@@ -108,42 +139,29 @@ print(f"""
     <br>
 
     R<sub>cut</sub> Value:
-    <input type="radio" name="r_cut" value="0.9" {is_checked('r_cut', '0.9')}> 0.9
     <input type="radio" name="r_cut" value="1.0" {is_checked('r_cut', '1.0')}> 1.0
-    <input type="radio" name="r_cut" value="1.2" {is_checked('r_cut', '1.2')}> 1.2
-    <input type="radio" name="r_cut" value="2.0" {is_checked('r_cut', '2.0')}> 2.0
     <br>
 
     kT Value:
-    <input type="radio" name="kT" value="0.5" {is_checked('kT', '0.5')}> 0.5
     <input type="radio" name="kT" value="1.0" {is_checked('kT', '1.0')}> 1.0
-    <input type="radio" name="kT" value="2.0" {is_checked('kT', '2.0')}> 2.0
-    <input type="radio" name="kT" value="3.0" {is_checked('kT', '3.0')}> 3.0
-    <input type="radio" name="kT" value="4.0" {is_checked('kT', '4.0')}> 4.0
     <br>
 
     A Value:
-    <input type="radio" name="A" value="500" {is_checked('A', '500')}> 500
+    <input type="radio" name="A" value="800" {is_checked('A', '800')}> 800
     <input type="radio" name="A" value="1000" {is_checked('A', '1000')}> 1000
-    <input type="radio" name="A" value="5000" {is_checked('A', '5000')}> 5000
-    <input type="radio" name="A" value="7500" {is_checked('A', '7500')}> 7500
-    <input type="radio" name="A" value="10000" {is_checked('A', '10000')}> 10000
+    <input type="radio" name="A" value="1200" {is_checked('A', '1200')}> 1200
+    <input type="radio" name="A" value="30000" {is_checked('A', '30000')}> 30000
     <br>
 
     &gamma; Value:
-    <input type="radio" name="gamma" value="200" {is_checked('gamma', '200')}> 200
-    <input type="radio" name="gamma" value="800" {is_checked('gamma', '800')}> 800
-    <input type="radio" name="gamma" value="1600" {is_checked('gamma', '1600')}> 1600
+    <input type="radio" name="gamma" value="1000" {is_checked('gamma', '1000')}> 1000
+    <input type="radio" name="gamma" value="1250" {is_checked('gamma', '1250')}> 1250
+    <input type="radio" name="gamma" value="1500" {is_checked('gamma', '1500')}> 1500
     <br>
 
     dt Value:
-    <input type="radio" name="dt" value="0.01" {is_checked('dt', '0.01')}> 0.01
     <input type="radio" name="dt" value="0.001" {is_checked('dt', '0.001')}> 0.001
-    <input type="radio" name="dt" value="0.0001" {is_checked('dt', '0.0001')}> 0.0001
-    <br>
-
-    Particle Spacing:
-    <input type="radio" name="particle_spacing" value="1.1" checked> 1.1
+    <input type="radio" name="dt" value="0.0015" {is_checked('dt', '0.0015')}> 0.0015
     <br>
 
     Seed:
@@ -194,17 +212,15 @@ def run_borah_cmd(cmd):
 log_dir = "".join([
     f"/bsuhome/{BORAH_USERNAME}/scratch/PhantomWalk/phantomwalk/signac/view/"
     f"dt/{get_input_val('dt')}/"
-    f"gamma/{get_input_val('gamma')}/"
     f"num_mon/{get_input_val('num_mon')}/"
     f"num_pol/{get_input_val('num_pol')}/"
+    f"gamma/{get_input_val('gamma')}/"
     f"k/{get_input_val('k')}/"
-    f"r_cut/{get_input_val('r_cut')}/"
     f"A/{get_input_val('A')}/"
-    f"kT/{get_input_val('kT')}/"
     "job"
 ])
 
-log_file = f"{log_dir}/log.txt"
+log_file = f"{log_dir}/log-1.txt"
 
 domain_min = get_input_val('domain_min')
 domain_max = get_input_val('domain_max')
@@ -233,7 +249,7 @@ run_cmd(f"scp {BORAH_USERNAME}@borah-login.boisestate.edu:~/{GRAPH_FILE_NAME} ."
 summary_file = f"{log_dir}/summary.txt"
 job_failure = "FAILURE" in run_borah_cmd(f"head -n 1 {summary_file}")
 
-print("<div>")
+print("<div id='graph'>")
 if job_failure:
     print("<p><b>Job FAILED!</b></p>")
 else:

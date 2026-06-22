@@ -45,4 +45,4 @@ axes.set_ylim([range_min, range_max])
 
 plt.xlabel(args.x_axis_name)
 plt.ylabel(args.y_axis_name)
-plt.savefig("/bsuhome/cooperpiehl/phantom-graph.png")
+plt.savefig("/bsuhome/cooperpiehl/phantom-graph.png", dpi=500)

@@ -61,8 +61,6 @@ walltime_errs = []
 NUM_RUNS = 5
 
 for job in jobs:
-    # if job.statepoint["A"] == 30000:
-    #     continue
     xs.append(job.statepoint[variables[0]])
     ys.append(job.statepoint[variables[1]])
 
@@ -90,8 +88,8 @@ y_grid = np.zeros(grid_shape)
 walltime_grid = np.zeros(grid_shape)
 
 for (x, y, z) in zip(xs, ys, walltimes):
-    x_idx = np.where(xs_sorted == x)#[0][0]
-    y_idx = np.where(ys_sorted == y)#[0][0]
+    x_idx = np.where(xs_sorted == x)
+    y_idx = np.where(ys_sorted == y)
     for val, grid in [(x, x_grid), (y, y_grid), (z, walltime_grid)]:
         grid[y_idx, x_idx] = val
 
@@ -120,5 +118,5 @@ walltime_plot.errorbar(xs, ys, walltimes, zerr=walltime_errs, fmt='none', ecolor
 output_dir = "./time-plots"
 if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
-plt.savefig(f"{output_dir}/{variables[0]}-{variables[1]}.png", dpi=700, transparent=True)
+plt.savefig(f"{output_dir}/{variables[0]}-{variables[1]}.png")
 # plt.show()

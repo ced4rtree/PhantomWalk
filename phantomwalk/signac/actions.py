@@ -138,7 +138,7 @@ def compute_data_internal(job, run_number):
                 dt = job.cached_statepoint['dt'],
                 sim_seed = job.cached_statepoint['seed'],
                 np_seed = job.cached_statepoint['seed'],
-                loop_timeout = 60 * 10 # 10 minutes
+                loop_timeout = 60 * 5 # 5 minutes
             )
             with open(job.fn(SUMMARY_FILE), 'a') as summary_file:
                 summary_file.write(f'run {run_number},')

@@ -8,7 +8,7 @@ command = "python actions.py --action $ACTION_NAME {directories}"
 name = "potential_energy_graph"
 products = ['pe.svg']
 launchers = ["openmp"]
-group.maximum_size = 48
+group.maximum_size = 25
 previous_actions = ['compute_data']
 
 [action.resources]
@@ -19,7 +19,7 @@ walltime.per_submission = "00:02:30"
 name = "rdf"
 products = ['rdf.svg']
 launchers = ["openmp"]
-group.maximum_size = 48
+group.maximum_size = 25
 previous_actions = ['compute_data']
 
 [action.resources]
@@ -44,7 +44,7 @@ products = [
   'trajectory-4.gsd',
 ]
 launchers = ["openmp"]
-group.maximum_size = 48
+group.maximum_size = 25
 
 [action.resources]
 gpus_per_process = 1
@@ -55,4 +55,4 @@ walltime.per_submission = "16:00:00"
 setup = "module load openmpi"
 custom = ["--gres=gpu:1"]
 output_file_name = "out/{action_name}-%j.out"
-partition = "gpu-l40"
+partition = "gpu-v100"

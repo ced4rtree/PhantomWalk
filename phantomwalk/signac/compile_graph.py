@@ -24,7 +24,7 @@ constants = {
     "bond_l": 1.0,
     "r_cut": 1.0,
     "kT": 1.0,
-    "A": 800,
+    "A": 30000,
     "gamma": 1250,
     "dt": 0.001,
     "seed": 125,
@@ -73,7 +73,7 @@ for job in jobs:
         walltime_stddev = np.std(job_walltimes)
         walltime_sem = walltime_stddev / math.sqrt(len(job_walltimes))
     else:
-        walltime_mean = 60 * 10 # 10 minute timout
+        walltime_mean = 60 * 5 # 5 minute timout
         walltime_sem = 0
     walltimes = np.append(walltimes, walltime_mean)
     walltime_errs = np.append(walltime_errs, walltime_sem)
@@ -102,7 +102,7 @@ walltime_plot.set_ylabel(f"{variables[1]}", labelpad=10)
 walltime_plot.set_yticks(ys)
 walltime_plot.set_yticklabels(ys, verticalalignment='baseline', horizontalalignment='left')
 walltime_plot.set_xticks(xs)
-walltime_plot.set_zticks([4, 5, 6])
+# walltime_plot.set_zticks([4, 5, 6])
 
 # plt.style.use("dark_background")
 # for axis in [walltime_plot.xaxis, walltime_plot.yaxis, walltime_plot.zaxis]:
@@ -118,5 +118,5 @@ walltime_plot.errorbar(xs, ys, walltimes, zerr=walltime_errs, fmt='none', ecolor
 output_dir = "./time-plots"
 if not os.path.isdir(output_dir):
     os.makedirs(output_dir)
-plt.savefig(f"{output_dir}/{variables[0]}-{variables[1]}.png")
-# plt.show()
+# plt.savefig(f"{output_dir}/{variables[0]}-{variables[1]}.png")
+plt.show()

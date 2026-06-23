@@ -96,13 +96,13 @@ for (x, y, z) in zip(xs, ys, walltimes):
 walltime_plot.plot_wireframe(x_grid, y_grid, walltime_grid)
 
 # NORM poster settings
-# walltime_plot.set_zlabel("Walltime (s)", color='white')
-# walltime_plot.set_xlabel(f"{variables[0]}", color='white', labelpad=7)
-# walltime_plot.set_ylabel(f"{variables[1]}", color='white', labelpad=10)
-# walltime_plot.set_yticks(ys)
-# walltime_plot.set_yticklabels(ys, verticalalignment='baseline', horizontalalignment='left')
-# walltime_plot.set_xticks(xs)
-# walltime_plot.set_zticks([4, 5, 6])
+walltime_plot.set_zlabel("Walltime (s)")
+walltime_plot.set_xlabel(f"{variables[0]}", labelpad=7)
+walltime_plot.set_ylabel(f"{variables[1]}", labelpad=10)
+walltime_plot.set_yticks(ys)
+walltime_plot.set_yticklabels(ys, verticalalignment='baseline', horizontalalignment='left')
+walltime_plot.set_xticks(xs)
+walltime_plot.set_zticks([4, 5, 6])
 
 # plt.style.use("dark_background")
 # for axis in [walltime_plot.xaxis, walltime_plot.yaxis, walltime_plot.zaxis]:

@@ -14,18 +14,18 @@ import math
 plt.rcParams.update({'font.size': 14})
 
 # Value is the key used to index into the parameter dictionary
-variables = ["k", "gamma"]
+variables = ["A", "k"]
 
 constants = {
     "num_pol": 100,
     "num_mon": 100,
     "density": 0.85,
-    "k": 30000,
+    "k": 60000,
     "bond_l": 1.0,
     "r_cut": 1.0,
     "kT": 1.0,
-    "A": 30000,
-    "gamma": 1250,
+    "A": 20000,
+    "gamma": 2000,
     "dt": 0.001,
     "seed": 125,
 }
@@ -93,7 +93,17 @@ for (x, y, z) in zip(xs, ys, walltimes):
     for val, grid in [(x, x_grid), (y, y_grid), (z, walltime_grid)]:
         grid[y_idx, x_idx] = val
 
-walltime_plot.plot_wireframe(x_grid, y_grid, walltime_grid)
+# get rid of points outside axis range
+ZLIM = 4
+for i in np.arange(len(xs_sorted)):
+    for j in np.arange(len(ys_sorted)):
+        if walltime_grid[j,i] > ZLIM:
+            walltime_grid[j,i] = ZLIM
+        else:
+            pass
+
+# walltime_plot.plot_wireframe(x_grid, y_grid, walltime_grid)
+walltime_plot.plot_surface(x_grid, y_grid, walltime_grid, cmap='viridis', edgecolor='green')
 
 # NORM poster settings
 walltime_plot.set_zlabel("Walltime (s)")
@@ -111,7 +121,8 @@ walltime_plot.set_xticks(xs)
 
 walltime_plot.errorbar(xs, ys, walltimes, zerr=walltime_errs, fmt='none', ecolor='r')
 
-# walltime_plot.set_zlim(zmax=10)
+walltime_plot.set_zlim3d(zmin=0, zmax=ZLIM)
+
 # walltime_plot.set_zscale('log')
 # walltime_plot.set_xlim(xmin=800, xmax=1500)
 

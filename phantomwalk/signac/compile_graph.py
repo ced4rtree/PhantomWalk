@@ -14,7 +14,7 @@ import math
 plt.rcParams.update({'font.size': 14})
 
 # Value is the key used to index into the parameter dictionary
-variables = ["A", "k"]
+variables = ["k", "gamma"]
 
 constants = {
     "num_pol": 100,
@@ -98,7 +98,7 @@ ZLIM = 4
 for i in np.arange(len(xs_sorted)):
     for j in np.arange(len(ys_sorted)):
         if walltime_grid[j,i] > ZLIM:
-            walltime_grid[j,i] = ZLIM
+            walltime_grid[j,i] = ZLIM+2
         else:
             pass
 
@@ -121,7 +121,7 @@ walltime_plot.set_xticks(xs)
 
 walltime_plot.errorbar(xs, ys, walltimes, zerr=walltime_errs, fmt='none', ecolor='r')
 
-walltime_plot.set_zlim3d(zmin=0, zmax=ZLIM)
+walltime_plot.set_zlim3d(zmin=1, zmax=ZLIM)
 
 # walltime_plot.set_zscale('log')
 # walltime_plot.set_xlim(xmin=800, xmax=1500)

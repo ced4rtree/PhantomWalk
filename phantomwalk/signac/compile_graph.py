@@ -14,7 +14,7 @@ import math
 plt.rcParams.update({'font.size': 14})
 
 # Value is the key used to index into the parameter dictionary
-variables = ["k", "gamma"]
+variables = ["A", "k"]
 
 constants = {
     "num_pol": 100,

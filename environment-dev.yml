@@ -13,6 +13,7 @@ dependencies:
   - mpi4py
   - row
   - signac-dashboard
+  - plotly
   - pytest
   - pytest-cov
   - pip

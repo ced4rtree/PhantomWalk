@@ -3,18 +3,16 @@
 import sys
 import subprocess
 import numpy as np
-import matplotlib
-import matplotlib.transforms
-import matplotlib.pyplot as plt
+import plotly
+import plotly.graph_objects as go
 import signac
 import gsd, gsd.hoomd
 import os
 import math
 
-plt.rcParams.update({'font.size': 14})
-
 # Value is the key used to index into the parameter dictionary
-variables = ["A", "k"]
+variables = sys.argv[1:]
+assert len(variables) == 2
 
 constants = {
     "num_pol": 100,
@@ -50,9 +48,6 @@ def fmt_dict(diction, signac=True):
 project = signac.Project()
 jobs = project.find_jobs(constants)
 
-fig = plt.figure()
-walltime_plot = fig.add_subplot(111, projection='3d')
-
 xs = []
 ys = []
 walltimes = []
@@ -80,54 +75,33 @@ for job in jobs:
 
 xs_sorted = np.sort(np.unique(xs))
 ys_sorted = np.sort(np.unique(ys))
-walltimes_sorted = np.sort(np.unique(walltimes))
 
-grid_shape = (len(ys_sorted), len(xs_sorted))
-x_grid = np.zeros(grid_shape)
-y_grid = np.zeros(grid_shape)
-walltime_grid = np.zeros(grid_shape)
+walltime_grid = np.zeros((len(ys_sorted), len(xs_sorted)))
 
 for (x, y, z) in zip(xs, ys, walltimes):
-    x_idx = np.where(xs_sorted == x)
-    y_idx = np.where(ys_sorted == y)
-    for val, grid in [(x, x_grid), (y, y_grid), (z, walltime_grid)]:
-        grid[y_idx, x_idx] = val
+    x_idx = np.where(xs_sorted == x)[0][0]
+    y_idx = np.where(ys_sorted == y)[0][0]
+    walltime_grid[y_idx][x_idx] = z
 
-# get rid of points outside axis range
-ZLIM = 4
-for i in np.arange(len(xs_sorted)):
-    for j in np.arange(len(ys_sorted)):
-        if walltime_grid[j,i] > ZLIM:
-            walltime_grid[j,i] = ZLIM+2
-        else:
-            pass
-
-# walltime_plot.plot_wireframe(x_grid, y_grid, walltime_grid)
-walltime_plot.plot_surface(x_grid, y_grid, walltime_grid, cmap='viridis', edgecolor='green')
-
-# NORM poster settings
-walltime_plot.set_zlabel("Walltime (s)")
-walltime_plot.set_xlabel(f"{variables[0]}", labelpad=7)
-walltime_plot.set_ylabel(f"{variables[1]}", labelpad=10)
-walltime_plot.set_yticks(ys)
-walltime_plot.set_yticklabels(ys, verticalalignment='baseline', horizontalalignment='left')
-walltime_plot.set_xticks(xs)
-# walltime_plot.set_zticks([4, 5, 6])
-
-# plt.style.use("dark_background")
-# for axis in [walltime_plot.xaxis, walltime_plot.yaxis, walltime_plot.zaxis]:
-#     [t.set_color('white') for t in axis.get_ticklines()]
-#     [t.set_color('white') for t in axis.get_ticklabels()]
-
-walltime_plot.errorbar(xs, ys, walltimes, zerr=walltime_errs, fmt='none', ecolor='r')
-
-walltime_plot.set_zlim3d(zmin=1, zmax=ZLIM)
-
-# walltime_plot.set_zscale('log')
-# walltime_plot.set_xlim(xmin=800, xmax=1500)
-
-output_dir = "./time-plots"
-if not os.path.isdir(output_dir):
-    os.makedirs(output_dir)
-# plt.savefig(f"{output_dir}/{variables[0]}-{variables[1]}.png")
-plt.show()
+fig = go.Figure(data=[go.Surface(z=walltime_grid, x=xs_sorted, y=ys_sorted)])
+fig.update_layout(
+    title=dict(text=f"Walltime (s) vs {variables[0]} & {variables[1]}"),
+    scene = {
+        "xaxis": {
+            "title": f'{variables[0]}',
+            "tickvals": xs_sorted
+        },
+        "yaxis": {
+            "title": f'{variables[1]}',
+            "tickvals": ys_sorted
+        },
+        "zaxis": {
+            "title": 'Walltime (s)'
+        }
+    }
+)
+plotly.offline.plot(
+    fig,
+    auto_open=False,
+    filename=f'time-plots/{variables[0]}-{variables[1]}.html'
+)

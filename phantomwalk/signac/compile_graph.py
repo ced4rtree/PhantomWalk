@@ -22,8 +22,8 @@ constants = {
     "bond_l": 1.0,
     "r_cut": 1.0,
     "kT": 1.0,
-    "A": 20000,
-    "gamma": 2000,
+    "A": 60000,
+    "gamma": 2250,
     "dt": 0.001,
     "seed": 125,
 }
@@ -83,6 +83,9 @@ for (x, y, z) in zip(xs, ys, walltimes):
     y_idx = np.where(ys_sorted == y)[0][0]
     walltime_grid[y_idx][x_idx] = z
 
+Z_UPPER_LIM=min([10, max(walltimes)])
+Z_LOWER_LIM=min(walltimes)
+
 fig = go.Figure(data=[go.Surface(z=walltime_grid, x=xs_sorted, y=ys_sorted)])
 fig.update_layout(
     title=dict(text=f"Walltime (s) vs {variables[0]} & {variables[1]}"),
@@ -96,9 +99,14 @@ fig.update_layout(
             "tickvals": ys_sorted
         },
         "zaxis": {
-            "title": 'Walltime (s)'
+            "title": 'Walltime (s)',
+            "range": [Z_LOWER_LIM, Z_UPPER_LIM]
         }
     }
+)
+fig.update_traces(
+    cmax=Z_UPPER_LIM,
+    cmin=Z_LOWER_LIM
 )
 plotly.offline.plot(
     fig,

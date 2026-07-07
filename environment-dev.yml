@@ -14,6 +14,7 @@ dependencies:
   - row
   - signac-dashboard
   - plotly
+  - dash
   - pytest
   - pytest-cov
   - pip

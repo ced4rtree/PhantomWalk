@@ -109,7 +109,7 @@ app = Dash(__name__)
 data = pd.DataFrame({a.name: a.collection for a in Data.global_axes})
 ranges = {a.name: a.unique() for a in Data.global_axes}
 
-def generate_div(label, dropdown_id, value, slider=False):
+def generate_div(label, dropdown_id, value, slider=False, extra_style={}):
     elements = [
         html.Label(f'{label}: '),
         dcc.Dropdown(id=f'{dropdown_id}-dropdown', options=[{'label': ax.name, 'value': ax.name} for ax in Data.global_axes], value=value),
@@ -117,14 +117,19 @@ def generate_div(label, dropdown_id, value, slider=False):
     if slider:
         elements.append(dcc.Slider(id='slice-slider', min=0, max=0, step=1, value=0, marks={}, allow_direct_input=False))
 
-    ret = html.Div(elements, style={'width': '24%', 'display': 'inline-block', 'margin': '4px', 'verticalAlign': 'top'}) 
+    style = {'width': '24%', 'display': 'inline-block', 'margin': '4px', 'verticalAlign': 'top'}
+
+    ret = html.Div(elements, style={**style, **extra_style}) 
     return ret
 
+app.title = "DPD Data Viewer"
 app.layout = html.Div([
-    generate_div('X-axis', 'xaxis', Data.global_axes[0].name),
-    generate_div('Y-axis', 'yaxis', Data.global_axes[1].name),
-    generate_div('Z-axis', 'zaxis', walltimes.name),
-    generate_div('Slice Along', 'slice', Data.global_axes[2].name, slider=True),
+    html.Div([
+        generate_div('X-axis', 'xaxis', Data.global_axes[0].name),
+        generate_div('Y-axis', 'yaxis', Data.global_axes[1].name),
+        generate_div('Z-axis', 'zaxis', walltimes.name)
+    ]),
+    generate_div('Slice Along', 'slice', Data.global_axes[2].name, slider=True, extra_style={'width': '73%'}),
 
     # 3D Surface Plot
     dcc.Graph(id='3d-surface-plot', style={'height': '100%'})
@@ -145,7 +150,7 @@ def update_slice_slider(slice_axis):
     marks = {i: str(v) for i, v in enumerate(unique_values)}
     return 0, len(unique_values)-1, marks, 0
 
-Z_UPPER_LIM=min([10, max(walltimes.collection)])
+Z_UPPER_LIM=min([6, max(walltimes.collection)])
 Z_LOWER_LIM=min(walltimes.collection)
 
 # Add callback to update graph when any axis is changed
@@ -196,6 +201,7 @@ def update_graph(xaxis, yaxis, zaxis, slice_axis, slice_idx):
     # print(f'subData[xaxis]: {subData[xaxis]}')
     fig.update_layout(
         title=dict(text=f"{xaxis} & {yaxis} vs. {zaxis} @ {slice_axis}={waxis_value}"),
+        uirevision = xaxis + yaxis + zaxis + slice_axis,
         scene = {
             "xaxis": {
                 "title": xaxis,
@@ -212,8 +218,10 @@ def update_graph(xaxis, yaxis, zaxis, slice_axis, slice_idx):
         }
     )
     fig.update_traces(
-        cmax=Z_UPPER_LIM,
-        cmin=Z_LOWER_LIM
+        # cmax=Z_UPPER_LIM,
+        cmax=3,
+        # cmin=Z_LOWER_LIM
+        cmin=0.8
     )
     return fig
 

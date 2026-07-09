@@ -12,6 +12,7 @@ import math
 from dataclasses import dataclass
 from dash import Output, Input, html, dcc, Dash
 import pandas as pd
+import re
 
 ### Define app parameters ###
 variables = ["A", "k", "gamma"]
@@ -153,6 +154,62 @@ def update_slice_slider(slice_axis):
 Z_UPPER_LIM=min([6, max(walltimes.collection)])
 Z_LOWER_LIM=min(walltimes.collection)
 
+NUMBER_ABBREVS = {
+    "7": "k",
+    "10": "M",
+    "13": "B"
+}
+
+def format_num(_val):
+    val = float(_val)
+    digits = len(str(abs(int(val))))
+    def format(char, chop_off):
+        ret = "{:.2f}".format(val/(10**chop_off))
+        for _ in range(3):
+            if ret[-1] == "0" or ret[-1] == ".":
+                ret = ret[:-1]
+        print(f'received {_val}, returning {ret}{char}')
+        return f"{ret}{char}"
+
+    if digits < 4:
+        return val
+    for digit_case, marker in NUMBER_ABBREVS.items():
+        digit_case = int(digit_case)
+        if digits < digit_case:
+            ret = format(marker, digit_case-4)
+            print(f"received {_val}, returned {ret}")
+            return ret
+    return str(val)
+
+def unformat_str(_val):
+    ret = str(_val)
+    last_char = ret[-1]
+    for digit_case, marker in NUMBER_ABBREVS.items():
+        digit_case = int(digit_case)
+        if last_char == marker:
+            ret = float(ret[:-1])
+            ret *= 10**(digit_case - 4)
+            return ret
+    return float(ret)
+
+MAX_TICKS = 12
+def generate_ticktext(_ticks):
+    ticktext = []
+    ticks = list(_ticks)
+    upper = max(ticks)
+    lower = min(ticks)
+    tick_delta = (upper - lower) / MAX_TICKS
+    print(f"tick_delta: {tick_delta}")
+    for idx, val in enumerate(ticks):
+        # don't print values that are too close together. it's ugly.
+        print([ float(unformat_str(x)) for x in ticktext if x != " " ])
+        if idx == 0 or val > [ float(unformat_str(x)) for x in ticktext if x != " " ][-1] + tick_delta:
+            ticktext.append(format_num(val))
+        else:
+            ticktext.append(" ")
+    # ticktext = list(map(lambda y: re.sub("000k", "M", re.sub("0000$", "0k", y)), ticktext))
+    return ticktext
+
 # Add callback to update graph when any axis is changed
 @app.callback(
     Output('3d-surface-plot', 'figure'),
@@ -168,10 +225,10 @@ def update_graph(xaxis, yaxis, zaxis, slice_axis, slice_idx):
         print(f"len(asdf): {len({xaxis, yaxis, zaxis, slice_axis})}")
         return go.Figure()
 
-    print(f'xaxis: {xaxis}')
-    print(f'yaxis: {yaxis}')
-    print(f'zaxis: {zaxis}')
-    print(f'slice_axis: {slice_axis}')
+    # print(f'xaxis: {xaxis}')
+    # print(f'yaxis: {yaxis}')
+    # print(f'zaxis: {zaxis}')
+    # print(f'slice_axis: {slice_axis}')
 
     # Get current slice value
     waxis_value = ranges[slice_axis][slice_idx]
@@ -188,41 +245,61 @@ def update_graph(xaxis, yaxis, zaxis, slice_axis, slice_idx):
         x_idx = np.where(x_uniq == x)[0][0]
         y_idx = np.where(y_uniq == y)[0][0]
         z_grid[y_idx][x_idx] = z
-        print(f'{slice_axis}: {waxis_value}, {xaxis}: {x}, {yaxis}: {y}, {zaxis}: {z}')
+        # print(f'{slice_axis}: {waxis_value}, {xaxis}: {x}, {yaxis}: {y}, {zaxis}: {z}')
     
     fig = go.Figure(data=[go.Surface(
         x=x_uniq,
         y=y_uniq,
         z=z_grid
     )])
-    print(f'figure: {fig}')
+    # print(f'figure: {fig}')
     # print(f'subData[zaxis]: {subData[zaxis]}')
     # print(f'subData[yaxis]: {subData[yaxis]}')
     # print(f'subData[xaxis]: {subData[xaxis]}')
+
+    z_ticks = list(range(1, 7))
+    z_ticktext = generate_ticktext(z_ticks)
+    z_ticktext[0] = " "
+
+    fig.update_yaxes(title_standoff=50)
+
     fig.update_layout(
         title=dict(text=f"{xaxis} & {yaxis} vs. {zaxis} @ {slice_axis}={waxis_value}"),
         uirevision = xaxis + yaxis + zaxis + slice_axis,
+        font = {
+            "size": 18
+        },
         scene = {
+            "bgcolor": "#f8f9f6",
             "xaxis": {
                 "title": xaxis,
-                "tickvals": x_uniq
+                "tickmode": "array",
+                "tickvals": x_uniq,
+                "ticktext": generate_ticktext(x_uniq) 
             },
             "yaxis": {
                 "title": yaxis,
-                "tickvals": y_uniq
+                # "title_standoff": 25,
+                "tickmode": "array",
+                "tickvals": y_uniq,
+                "ticktext": generate_ticktext(y_uniq)
             },
             "zaxis": {
                 "title": zaxis,
-                "range": [Z_LOWER_LIM, Z_UPPER_LIM]
+                "range": [Z_LOWER_LIM, Z_UPPER_LIM],
+                "tickvals": z_ticks,
+                "ticktext": z_ticktext
             }
         }
     )
+
     fig.update_traces(
         # cmax=Z_UPPER_LIM,
-        cmax=3,
+        cmax=5,
         # cmin=Z_LOWER_LIM
         cmin=0.8
     )
+
     return fig
 
 PORT = 8888
